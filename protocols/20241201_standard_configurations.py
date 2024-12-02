@@ -2,26 +2,6 @@
 
 from epics import caput, caget
 
-# Required Process Variables (PVs) for this protocol. These will be validated before execution.
-required_pvs = [
-    'mc0:ysam',
-    'mx0:zsam',
-    'ims:detx',
-    'ims:dety',
-    'ims:detz',
-    'ims:s1bot',
-    'ims:s1top',
-    'ims:s1hl',
-    'ims:s1hr',
-    'ims:s2bot',
-    'ims:s2top',
-    'ims:s2hl',
-    'ims:s2hr',
-    'ims:s3bot',
-    'ims:s3top',
-    'ims:s3hl',
-    'ims:s3hr',
-]
 # Required additional parameters for this protocol, these need to be present in the logbook entry
 required_params = ['temperature_setpoint']
 

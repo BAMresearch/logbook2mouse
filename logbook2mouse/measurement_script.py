@@ -21,29 +21,29 @@ class MeasurementScript:
 
     def generate_script(self):
         script_lines = []
+
         # Script startup
-        script_lines.append("# put startup commands here, check power levels of generator, vacuum levels, etc.")
+        script_lines += self.load_protocol_template(self.protocols_directory/'setup.py')
 
         # For every entry in the logbook
         for entry in self.entries:
-            # Entry startup
-            script_lines.append(f"logging.info('Starting entry for logbook roe {entry.row_index}, sampleID: {entry.sampleid}.')")
             # Include the measurement protocol template for this entry
-            protocol_lines = self.load_protocol_template(entry)
-            script_lines += protocol_lines
-            # Entry shutdown
-            script_lines.append(f"logging.info('Measurement entry complete for sample {entry.sampleid}.)")
+            script_lines += self.load_protocol_template(entry)
 
         # Script shutdown
-        script_lines.append("logging.info('end of measurement script.')")
+        script_lines += self.load_protocol_template(self.protocols_directory/'teardown.py')
 
         return "\n".join(script_lines)
 
-    def load_protocol_template(self, entry: Logbook2MouseEntry) -> List[str]:
+    def load_protocol_template(self, entry: Logbook2MouseEntry | None = None, protocol_path:Path | None = None) -> List[str]:
         """
         Load the protocol template as a list of lines from the protocols directory.
         """
-        protocol_path = self.protocols_directory / entry.protocol
+        if entry is not None: 
+            protocol_path = self.protocols_directory / entry.protocol
+        else: 
+            assert protocol_path is not None, "Either entry or protocol_path must be provided."
+
         assert protocol_path.is_file(), f"Protocol file {protocol_path} not found."
 
         try:
