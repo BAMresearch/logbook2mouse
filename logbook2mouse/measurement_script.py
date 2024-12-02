@@ -23,7 +23,7 @@ class MeasurementScript:
         script_lines = []
 
         # Script startup
-        script_lines += self.load_protocol_template(self.protocols_directory/'setup.py')
+        script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'setup.py')
 
         # For every entry in the logbook
         for entry in self.entries:
@@ -31,9 +31,9 @@ class MeasurementScript:
             script_lines += self.load_protocol_template(entry)
 
         # Script shutdown
-        script_lines += self.load_protocol_template(self.protocols_directory/'teardown.py')
+        script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'teardown.py')
 
-        return "\n".join(script_lines)
+        return "".join(script_lines)
 
     def load_protocol_template(self, entry: Logbook2MouseEntry | None = None, protocol_path:Path | None = None) -> List[str]:
         """

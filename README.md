@@ -5,16 +5,12 @@ This library reads a measurement logbook and generates a script for a SAXS instr
 ## Installation
 
 ```bash
-pip install .
+python3.12 -m venv .venv
+pip install -e .
 ```
 
 ## Usage
 
-```python
-from logbook2mouse.logbook_reader import Logbook2MouseReader, Logbook2MouseEntry
-
-reader = Logbook2MouseReader("path/to/logbook.xlsx")
-entries = reader.get_entries()
-for idx, entry in entries.items():
-    print(f"Entry {idx}: {entry}")
+```bash
+python -m logbook2mouse logbook/Logbook_MOUSE.xlsx protocols/ test_script.py
 ```
