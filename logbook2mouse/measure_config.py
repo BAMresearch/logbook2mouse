@@ -1,13 +1,16 @@
 from pathlib import Path
+import os
+import time
 import h5py
 import logging
 import caproto.threading.pyepics_compat as epics
-
+import logbook2mouse.file_management as filemanagement
+import logbook2mouse.detector as detector
 
 def move_motor(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    epics.caput(f"{prefix}:{motorname}", motorpos)
+    epics.caput(f"{prefix}:{motorname}", motorpos, wait = True)
     logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
     return motorname, motorpos
 
@@ -36,41 +39,43 @@ def measure_profile(
     mode="blank",
     duration: int = 20,  # add functionality to determine time needed later
 ):
+    if not os.path.exists(store_location):
+        os.mkdir(store_location)
     if mode == "blank":
-        epics.caput("mc0:ysam", entry.blankpositiony)
-        epics.caput("mc0:zsam", entry.blankpositionz)
+        epics.caput("mc0:ysam", entry.blankpositiony, wait = True)
+        epics.caput("mc0:zsam", entry.blankpositionz, wait = True)
         beamprofilepath = store_location / "beam_profile"
         if not os.path.exists(beamprofilepath):
-            mkdir(beamprofilepath)
+            os.mkdir(beamprofilepath)
     else:
-        epics.caput("mc0:ysam", entry.positiony)
-        epics.caput("mc0:zsam", entry.positionz)
+        epics.caput("mc0:ysam", entry.positiony, wait = True)
+        epics.caput("mc0:zsam", entry.positionz, wait = True)
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
-            mkdir(beamprofilepath)
-    epics.caput("source_cu:shutter", "Open")
+            os.mkdir(beamprofilepath)
+    robust_caput("source_cu:shutter", 1, timeout = 5)
     detector.measurement(
-        dEiger_connection, duration=duration, store_location=store_location
+        dEiger_connection, duration=duration, store_location=beamprofilepath,
     )
-    epics.caput("source_cu:shutter", "Closed")
+    robust_caput("source_cu:shutter", 0, timeout = 5)
 
 
 def measure_dataset(
     entry, dEiger_connection, store_location: Path, bsr: float, duration: int = 600
 ):
-    epics.caput("ims:bsr", 270)
+    epics.caput("ims:bsr", 270, wait = True)
     for mode in ["blank", "sample"]:
         measure_profile(
             entry, store_location, dEiger_connection, mode=mode, duration=20
         )
-    epics.caput("mc0:ysam", entry.positiony)
-    epics.caput("mc0:zsam", entry.positionz)
-    epics.caput("ims:bsr", bsr)
-    epics.caput("source_cu:shutter", "Open")
+    epics.caput("mc0:ysam", entry.positiony, wait = True)
+    epics.caput("mc0:zsam", entry.positionz, wait = True)
+    epics.caput("ims:bsr", bsr, wait = True)
+    robust_caput("source_cu:shutter", 1, timeout = 5)
     detector.measurement(
         dEiger_connection, duration=duration, store_location=store_location
     )
-    epics.caput("source_cu:shutter", "Closed")
+    robust_caput("source_cu:shutter", 0, timeout = 5)
 
 
 def measure_at_config(
