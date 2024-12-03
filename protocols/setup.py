@@ -2,15 +2,15 @@
 # use this code to check PVs, generators, etc. 
 import logging
 from epics import caget
+from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
 
-logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
 
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
 required_pvs = [
     'mc0:ysam',
-    'mx0:zsam',
+    'mc0:zsam',
     'ims:detx',
     'ims:dety',
     'ims:detz',
