@@ -105,7 +105,7 @@ def measurement(DEiger, duration: int = 1, store_location: Path = Path(".")):
         DEiger.client.fileWriterSave(item, store_location)
     copyfile(
         os.path.join(store_location, item),
-        Path("~/scan-using-epics-ioc/.current/current.h5"),
+        Path("/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5"),
     )
     DEiger.client.fileWriterSave(last_available_master, store_location)
     # write metadata file
