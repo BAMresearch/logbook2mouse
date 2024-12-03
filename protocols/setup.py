@@ -2,7 +2,8 @@
 # use this code to check PVs, generators, etc. 
 import logging
 from epics import caget
-import detector
+import logbook2mouse.detector as detector
+from logbook2mouse.logbook_reader import Logbook2MouseEntry
 
 logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
 
@@ -25,6 +26,9 @@ required_pvs = [
     'ims:s3top',
     'ims:s3hl',
     'ims:s3hr',
+    'ims:bsr',
+    'ims:bsz',
+    'source_cu:shutter',
 ]
 
 # check that the PVs are reachable before we execute a script:
