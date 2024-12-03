@@ -25,11 +25,20 @@ def moveto_config(
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
     for pv in required_pvs:
-        prefix, motorname = pv.split(":")
-        name, position = move_motor(motorname, imcrawfile=configfile, prefix=prefix)
-        if name == "bsr":
-            bsr = position
+        if "shutter" not in pv:
+            prefix, motorname = pv.split(":")
+            name, position = move_motor(motorname, imcrawfile=configfile, prefix=prefix)
+            if name == "bsr":
+                bsr = position
     return {"bsr": position}
+
+def robust_caput(pv, value, timeout = 5):
+    epics.caput(pv, value, timeout = timeout)
+    new_position = epics.caget(pv)
+    while new_position != value:
+        time.sleep(.2)
+        new_position = epics.caget(pv)
+        
 
 
 def measure_profile(
