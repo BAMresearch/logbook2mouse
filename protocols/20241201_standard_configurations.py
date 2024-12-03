@@ -4,6 +4,8 @@ from epics import caput, caget
 import logbook2mouse.measure_config as measure
 import logbook2mouse.file_management as filemanagement
 
+logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
+
 # Required additional parameters for this protocol, these need to be present in the logbook entry
 required_params = ['temperature_setpoint']
 
@@ -30,7 +32,7 @@ print(f"Current sample position: X={current_x}, Y={current_y}, Z={current_z}")
 # Simulate starting the measurement
 print(f"Starting measurement for sample {entry.sampleid} with temperature set to {temperature} degrees.")
 
-store_location = filemanagement.work_directory(entry.date)
+store_location = filemanagement.work_directory(entry)
 for config in configurations:
     measure.measure_at_config(config_no = config,
                               entry = entry,
