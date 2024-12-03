@@ -35,5 +35,6 @@ for config in configurations:
     measure.measure_at_config(config_no = config,
                               entry = entry,
                               required_pvs = required_pvs,
-                              dEiger_connection = eiger
+                              dEiger_connection = eiger,
+                              duration=60,
                               )
