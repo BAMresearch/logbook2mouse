@@ -9,7 +9,7 @@ import logging
 from attrs import define, field, validators
 import DEigerClient
 import logbook2mouse.file_management as filemanagement
-
+import logbook2mouse.metadata as meta
 
 @define
 class DEiger:
@@ -111,6 +111,7 @@ def measurement(DEiger, duration: int = 1, store_location: Path = Path(".")):
     # write metadata file
     # *check if we still need this!*
     # ctx = await new_context()
+    meta.write_meta_nxs(store_location)
     # await meta.write_meta_nxs(ctx, "pa0", store_location)
     # await ctx.disconnect()
 
