@@ -4,8 +4,9 @@ import numpy as np
 from pathlib import Path
 
 def work_directory(entry, basedir = Path("/home/ws8665-epics/data/")) -> Path:
-    ymd = entry.date.strftime("%Y%m%d")
-    work_directory = basedir / ymd
+    timestamp = entry.date
+    ymd = timestamp.strftime("%Y%m%d")
+    work_directory = basedir / str(timestamp.year) / ymd
     if os.path.exists(work_directory):
         logging.info(f"Measurement directory {ymd} already in use. Data will be added to this directory. ")
     else:
