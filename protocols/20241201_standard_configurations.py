@@ -11,9 +11,9 @@ required_params = ['temperature_setpoint']
 configurations = [127]
 
 # Example of setting some EPICS Process Variables (PVs)
-caput('SAMPLE:POSITION:X', entry.positionx)
-caput('SAMPLE:POSITION:Y', entry.positiony)
-caput('SAMPLE:POSITION:Z', entry.positionz)
+# caput('SAMPLE:POSITION:X', entry.positionx)
+caput('mc0:ysam', entry.positiony)
+caput('mc0:zsam', entry.positionz)
 
 # Example of setting additional parameters
 temperature = entry.additional_parameters.get('temperature_setpoint', None)
@@ -21,9 +21,9 @@ if temperature is not None:
     caput('SAMPLE:TEMP:SETPOINT', temperature)
 
 # Verifying if the values were set correctly
-current_x = caget('SAMPLE:POSITION:X')
-current_y = caget('SAMPLE:POSITION:Y')
-current_z = caget('SAMPLE:POSITION:Z')
+current_x = 0  # caget('SAMPLE:POSITION:X')
+current_y = caget('mc0:ysam')
+current_z = caget('mc0:zsam')
 
 print(f"Current sample position: X={current_x}, Y={current_y}, Z={current_z}")
 
