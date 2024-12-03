@@ -2,6 +2,7 @@
 # use this code to check PVs, generators, etc. 
 import logging
 from epics import caget
+import detector
 
 logging.info('Starting entry for logbook roe {entry.row_index}, sampleID: {entry.sampleid}.')
 
@@ -31,4 +32,8 @@ for pv in required_pvs:
     value = caget(pv)
     if value is None:
         raise ConnectionError(f"PV '{pv}' is not reachable or has no value.")
-    
+
+# connect to and initialize detector parameters
+eiger = detector.DEiger()
+eiger.set_defaults()
+
