@@ -74,7 +74,12 @@ def measure_dataset(
 
 
 def measure_at_config(
-    config_no: int, entry, required_pvs, dEiger_connection, repetitions=None
+    config_no: int,
+    entry,
+    required_pvs,
+    dEiger_connection,
+    repetitions=None,
+    duration: int = 600,
 ):
     """Measure with the default settings for each configuration."""
     config_dict = moveto_config(
@@ -106,4 +111,5 @@ def measure_at_config(
             dEiger_connection,
             store_location=store_location,
             bsr=config_dict["bsr"],
+            duration=duration,
         )
