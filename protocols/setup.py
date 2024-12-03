@@ -4,7 +4,7 @@ import logging
 from epics import caget
 import detector
 
-logging.info('Starting entry for logbook roe {entry.row_index}, sampleID: {entry.sampleid}.')
+logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
 
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
 required_pvs = [
