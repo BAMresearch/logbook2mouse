@@ -1,6 +1,8 @@
 # 20241201_standard_configurations.py
 
 from epics import caput, caget
+import logbook2mouse.measure_config as measure
+import logbook2mouse.file_management as filemanagement
 
 # Required additional parameters for this protocol, these need to be present in the logbook entry
 required_params = ['temperature_setpoint']
