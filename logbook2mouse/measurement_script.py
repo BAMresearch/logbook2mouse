@@ -28,6 +28,7 @@ class MeasurementScript:
         # For every entry in the logbook
         for entry in self.entries:
             # Include the measurement protocol template for this entry
+            script_lines += f"entry = {entry}"
             script_lines += self.load_protocol_template(entry)
 
         # Script shutdown
