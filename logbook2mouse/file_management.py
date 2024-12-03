@@ -15,7 +15,7 @@ def work_directory(entry, basedir = Path("/home/ws8665-epics/data/")) -> Path:
 
 def scan_counter_next(scan_counter, work_directory, entry):
     get_no = lambda dirname: int(dirname.split("_")[-1])
-    scan_numbers = np.array([get_no(d) for d in next(os.walk(work_directory))[1] if d.startswith(f"{entry.date.strftime('%Y%m%d'}_")])
+    scan_numbers = np.array([get_no(d) for d in next(os.walk(work_directory))[1] if d.startswith(f"{entry.date.strftime('%Y%m%d')}_")])
     if scan_numbers.size == 0:
         value = 0
     elif scan_counter <= np.max(scan_numbers):
