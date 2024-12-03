@@ -119,7 +119,7 @@ def measure_at_config(
         next_measurement_no = filemanagement.scan_counter_next(
             scan_counter, work_directory, entry
         )
-        store_location = work_directory / f"{ymd}_{next_measurement_no}"
+        store_location = work_directory / f"{ymd}_{entry.batchnum}_{next_measurement_no}"
         measure_dataset(
             entry,
             dEiger_connection,
