@@ -7,6 +7,8 @@ import logbook2mouse.file_management as filemanagement
 # Required additional parameters for this protocol, these need to be present in the logbook entry
 required_params = ['temperature_setpoint']
 
+# Configurations to measure
+configurations = [127]
 
 # Example of setting some EPICS Process Variables (PVs)
 caput('SAMPLE:POSITION:X', entry.positionx)
@@ -27,3 +29,11 @@ print(f"Current sample position: X={current_x}, Y={current_y}, Z={current_z}")
 
 # Simulate starting the measurement
 print(f"Starting measurement for sample {entry.sampleid} with temperature set to {temperature} degrees.")
+
+store_location = filemanagement.work_directory(entry.date)
+for config in configurations:
+    measure.measure_at_config(config_no = config,
+                              entry = entry,
+                              required_pvs = required_pvs,
+                              dEiger_connection = eiger
+                              )
