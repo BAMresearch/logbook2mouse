@@ -71,6 +71,9 @@ def meta_file_structure(h5file):
                     saxslabattr = f"{direction[0]}{attribute[0]}{i}"
                     # initialize empty
                     nxsaxslab.create_dataset(saxslabattr, data=0.0, dtype = "f")
+
+    # environment variables
+    nxsaxslab.create_dataset("chamber_pressure", data=0.0, dtype="f")
     return h5file
 
 
@@ -130,4 +133,9 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
                     slit_data = epics.caget(parrot_address)
                     dataset = f[f"/saxs/Saxslab/{saxslabattr}"]
                     dataset[...] = slit_data
+
+        # environment variables
+        pressure = epics.caget(f"{parrot_prefix}:environment:pressure")
+        dataset = f["/saxs/Saxslab/chamber_pressure"]
+        dataset[...] = pressure
 
