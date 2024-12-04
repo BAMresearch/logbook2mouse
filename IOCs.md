@@ -36,3 +36,34 @@ directory.
   . .parrot_env/bin/activate
   python -m parrot --list-pvs
   ```
+
+## multi-function device, Arduino/Portenta Machine Control (NetworkedPortentaIOC)
+
+- code at `~/IOCs/NetworkedPortentaIOC/`
+- steps to run
+
+  ```sh
+  . .ioc_env/bin/activate
+  python3.11 NetworkedPortentaIOC.py --host 172.17.1.124 --port 1111 --list-pvs
+  ```
+
+## x-ray source copper&moly: (Genix_IOC)
+
+- code at `~/IOCs/MOUEModbusDevices/`
+- steps to run
+
+  ```sh
+  . .ioc_env/bin/activate
+  python3.11 MOUSEModbusDevices/src/Genix_IOC.py --host 172.17.1.3 --port 502 --unit-id 1 --prefix source_cu: --list-pvs -v
+  python3.11 MOUSEModbusDevices/src/Genix_IOC.py --host 172.17.1.5 --port 502 --unit-id 1 --prefix source_mo: --list-pvs -v
+  ```
+
+## Inficon pressure gauge: (pressure_gauge_ioc)
+
+- code at `~/IOCs/pressure_gauge_ioc/`
+- steps to run
+
+  ```sh
+  . .ioc_env/bin/activate
+  python3.11 pressure_IOC.py --host 172.17.1.14 --port 4012 --prefix pressure_gauge: --list-pvs
+  ```
