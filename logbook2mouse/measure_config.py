@@ -31,6 +31,7 @@ def move_motor(
         parrot_pv = f"{parrot_prefix}:environment:motors:{motorname}"
     actual_value = epics.caget(f"{prefix}:{motorname}")
     epics.caput(parrot_pv, actual_value)
+    return actual_value
 
 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
