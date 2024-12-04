@@ -10,7 +10,7 @@ import logbook2mouse.metadata as meta
 
 
 def move_motor(
-    motorname, position: float, prefix: str = "ims", parrot_prefix: str = "pa0"
+    motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
 ):
     """Move the motor to the requested value and set parrot PVs."""
     epics.caput(f"{prefix}:{motorname}", motorpos, wait=True)
