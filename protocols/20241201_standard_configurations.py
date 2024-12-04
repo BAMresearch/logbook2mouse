@@ -1,7 +1,7 @@
 # 20241201_standard_configurations.py
 
-from epics import caput, caget
-import logbook2mouse.measure_config as measure
+from epics import caget, caput
+from logbook2mouse.measure_config import move_motor, measure_at_config
 import logbook2mouse.file_management as filemanagement
 
 logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
@@ -16,8 +16,8 @@ if "configuration" in entry.additional_parameters.keys():
 
 # Example of setting some EPICS Process Variables (PVs)
 # caput('SAMPLE:POSITION:X', entry.positionx)
-caput('mc0:ysam', entry.positiony)
-caput('mc0:zsam', entry.positionz)
+current_y = move_motor('ysam', entry.positiony)
+current_z = move_motor('zsam', entry.positionz)
 
 # Example of setting additional parameters
 temperature = entry.additional_parameters.get('temperature_setpoint', None)
@@ -36,9 +36,9 @@ print(f"Starting measurement for sample {entry.sampleid} with temperature set to
 
 store_location = filemanagement.work_directory(entry)
 
-measure.measure_at_config(config_no = configuration,
-                          entry = entry,
-                          required_pvs = required_pvs,
-                          dEiger_connection = eiger,
-                          duration=60,
-                          )
+measure_at_config(config_no = configuration,
+                  entry = entry,
+                  required_pvs = required_pvs,
+                  dEiger_connection = eiger,
+                  duration=60,  # default: 600
+                  )
