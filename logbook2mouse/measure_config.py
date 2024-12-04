@@ -163,3 +163,15 @@ def measure_at_config(
             bsr=config_dict["bsr"],
             duration=duration,
         )
+
+
+def standard_configurations(keyword: str = "standard"):
+    if keyword == "standard":
+        configurations = [151, 152, 153, 154, 155, 156, 123, 125, 127]
+    elif keyword == "capillary":
+        configurations = [110, 113, 115, 117]
+    else:
+        raise ValueError(
+            f"Configuration set {keyword} is not defined. Specify the configurations to measure explicitly one by one, with e.g. 'key1=configuration' and 'value1=123' for configuration 123."
+        )
+    return configurations

@@ -6,6 +6,7 @@ from typing import List
 from epics import caget
 
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
+from logbook2mouse.measure_config import standard_configurations
 
 @attrs.define
 class MeasurementScript:
