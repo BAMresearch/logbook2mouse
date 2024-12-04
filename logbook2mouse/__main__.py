@@ -50,7 +50,14 @@ def parse_args():
     parser.add_argument("-V", "--validate", action="store_true", 
                         help="Validate the generated script before execution")
 
+    parser.add_argument(
+        "-c",
+        "--collate",
+        action="store_true",
+        help="Collate the measurements by configuration",
+    )
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     # Parse arguments
@@ -98,7 +105,12 @@ if __name__ == "__main__":
     # Example usage
     try:
         reader = Logbook2MouseReader(logbook_path)
-        script = MeasurementScript(entries=reader.entries, protocols_directory=protocols_directory, output_script_path=output_script_path)
+        script = MeasurementScript(
+            entries=reader.entries,
+            protocols_directory=protocols_directory,
+            output_script_path=output_script_path,
+            collate=args.collate,
+        )
 
         # Validate the script if the -V flag is provided
         if args.validate:
