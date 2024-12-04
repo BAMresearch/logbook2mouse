@@ -26,11 +26,25 @@ class MeasurementScript:
         # Script startup
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'setup.py')
 
-        # For every entry in the logbook
-        for entry in self.entries:
-            # Include the measurement protocol template for this entry
-            script_lines += f"entry = {entry}"
-            script_lines += self.load_protocol_template(entry)
+        # Find out whether to iterate over configurations first
+        if all(["configurations" in entry.additional_parameters.keys() for entry in self.entries]):
+            unique_entries = set([entry.additional_parameters.get('configurations') for entry in self.entries])
+            if len(unique_entries) == 1:
+                # reshuffle only if all experiments are of the same type
+                keyword = unique_entries.pop()
+                configurations = standard_configurations(keyword)
+                for configuration in configurations:
+                    script_lines += f"configuration = {configuration}" + "\n"
+                    for entry in self.entries:
+                        # Include the measurement protocol template for this entry
+                        script_lines += f"entry = {entry}" + "\n"
+                        script_lines += self.load_protocol_template(entry)
+        else:
+            # For every entry in the logbook
+            for entry in self.entries:
+                # Include the measurement protocol template for this entry
+                script_lines += f"entry = {entry}" + "\n"
+                script_lines += self.load_protocol_template(entry)
 
         # Script shutdown
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'teardown.py')
