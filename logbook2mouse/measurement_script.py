@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import List
 from epics import caget
 import pandas as pd
+import logging
+logger = logging.getLogger("logbook2mouse")
 
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
 from logbook2mouse.measure_config import standard_configurations
@@ -109,7 +111,8 @@ class MeasurementScript:
         for r, row in entry_df.iterrows():
             for e, entry in row.items():
                 if type(entry) == Logbook2MouseEntry:
-                    print(f"Generating measurement script for ymd {entry.date}, sample position {entry.sampos}, configuration {entry.additional_parameters['configuration']}")
+                    config = entry.additional_parameters.get("configuration", None)
+                    logger.info(f"Generating script for ymd {entry.date.strftime('%Y%m%d')}, sample position {entry.sampos}, configuration {config}")
                     script_lines += f"entry = {entry}" + "\n"
                     script_lines += self.load_protocol_template(entry)
 
