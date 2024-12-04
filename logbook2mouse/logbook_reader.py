@@ -60,7 +60,7 @@ class Logbook2MouseEntry:
             "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes",
         ]
 
-        additional_parameters = {k: v for k, v in series.items() if k not in predefined_fields}
+        additional_parameters = dict(zip(series.filter(like="key").values, series.filter(like="val").values))
         
         return cls(
             row_index=series.name,
