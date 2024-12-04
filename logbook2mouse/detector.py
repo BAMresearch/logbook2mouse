@@ -108,12 +108,12 @@ def measurement(DEiger, duration: int = 1, store_location: Path = Path(".")):
         Path("/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5"),
     )
     DEiger.client.fileWriterSave(last_available_master, store_location)
+
+    # get current snapshot of chamber pressure, temperature, ...
+    # this is recorded at the end of the measurement time
+    meta.environment2parrot()
     # write metadata file
-    # *check if we still need this!*
-    # ctx = await new_context()
     meta.write_meta_nxs(store_location)
-    # await meta.write_meta_nxs(ctx, "pa0", store_location)
-    # await ctx.disconnect()
 
     data = None
     for fname in last_available_data:

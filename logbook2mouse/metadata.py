@@ -7,7 +7,10 @@ def logbook2parrot(entry, parrot_prefix: str = "pa0"):
     for item in ["Proposal", "sampleid", "sampos"]:
         value = entry[item]
         epics.caput(f"{parrot_prefix}:sample:{item}")
-    
+
+def environment2parrot(parrot_prefix: str = "pa0"):
+    pressure = epics.caget("pressure_gauge:pressure")
+    epics.caput(f"{parrot_prefix}:environment:pressure")
 
 def meta_file_structure(h5file):
     h5file.attrs['default'] = "entry1"
