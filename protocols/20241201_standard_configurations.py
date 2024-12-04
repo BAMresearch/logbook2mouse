@@ -10,7 +10,9 @@ logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entr
 required_params = ['temperature_setpoint']
 
 # Configurations to measure
-configurations = [127]
+if "configuration" in entry.additional_parameters.keys():
+    configuration = [entry.additional_parameters['configuration']]
+
 
 # Example of setting some EPICS Process Variables (PVs)
 # caput('SAMPLE:POSITION:X', entry.positionx)
@@ -33,10 +35,10 @@ print(f"Current sample position: X={current_x}, Y={current_y}, Z={current_z}")
 print(f"Starting measurement for sample {entry.sampleid} with temperature set to {temperature} degrees.")
 
 store_location = filemanagement.work_directory(entry)
-for config in configurations:
-    measure.measure_at_config(config_no = config,
-                              entry = entry,
-                              required_pvs = required_pvs,
-                              dEiger_connection = eiger,
-                              duration=60,
-                              )
+
+measure.measure_at_config(config_no = configuration,
+                          entry = entry,
+                          required_pvs = required_pvs,
+                          dEiger_connection = eiger,
+                          duration=60,
+                          )
