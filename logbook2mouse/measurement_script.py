@@ -23,16 +23,74 @@ class MeasurementScript:
         assert self.protocols_directory.exists(), f"Protocols directory does not exist: {self.protocols_directory}"
 
     def collate_configurations(self):
+        """
+        Generate configurations to be measured and collect in dataframe.
+
+        The command-line argument '--collate' dictates whether all measurements
+        for one configuration are done before moving to the next one.
+        In terms of the data frame returned, the configurations are the rows
+        of the dataframe with this option.
+
+        The resulting dataframe is converted into the measurement script
+        in left-to-right reading order.
+
+        Example:
+
+            input:
+
+            line number | sample     | ... | key1           | var1      |
+            1           | sample 1   | ... | configurations | standard  |
+            2           | sample 2   | ... | configurations | standard  |
+            3           | sample 3   | ... | configurations | capillary |
+            4           | sample 4   | ... | configuration  | 251       |
+
+
+            output with self.collate = True: - measure everything at a given config first
+
+            configuration number
+             |
+             v  | line 1   | line 2   | line 3   | line 4   | <- logbook line
+            151 | sample 1 | sample 2 |          |          |
+            123 | sample 1 | sample 2 |          |          |
+            125 | sample 1 | sample 2 |          |          |
+            127 | sample 1 | sample 2 |          |          |
+            110 |          |          | sample 3 |          |
+            113 |          |          | sample 3 |          |
+            115 |          |          | sample 3 |          |
+            117 |          |          | sample 3 |          |
+            251 |          |          |          | sample 4 |
+
+
+            output with self.collate = False - measure everthing for a given sample at once
+
+            logbook line
+            |
+            v | 151      | 123      | 125      | 127      | 110      | 113      | 115      | 117      | 251  <- configuration
+            1 | sample 1 | sample 1 | sample 1 | sample 1 |          |          |          |          |
+            2 | sample 2 | sample 2 | sample 2 | sample 2 |          |          |          |          |
+            3 | sample 1 | sample 2 |          |          | sample 3 | sample 3 | sample 3 | sample 3 |
+            4 | sample 1 | sample 2 |          |          |          |          |          |          | sample 4
+
+
+        Returns:
+            pd.DataFrame[Logbook2MouseEntry]
+
+        """
         measurement_matrix = {}
         for entry in self.entries:
             parsed_entries = {}
             if "configurations" in entry.additional_parameters.keys():
+                # shortcuts for standard measurements for powders and liquids
                 configurations = standard_configurations(entry.additional_parameters.get("configurations"))
                 for config in configurations:
                     new_entry = copy.deepcopy(entry)
                     new_entry.additional_parameters["configuration"] = config
                     parsed_entries[config] = new_entry
+            elif "configuration" in entry.additional_parameters.keys():
+                # single requested configuration
+                parsed_entries[entry.additional_parameters["configuration"]] = entry
             else:
+                # let's not call a configuration number 0 in the future...
                 parsed_entries[0] = entry
             measurement_matrix[entry.row_index] = parsed_entries
         if self.collate == True:
