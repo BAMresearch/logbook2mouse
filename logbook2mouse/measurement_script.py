@@ -1,9 +1,10 @@
 import importlib.util
-import os
+import os, copy
 import attrs
 from pathlib import Path
 from typing import List
 from epics import caget
+import pandas as pd
 
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
 from logbook2mouse.measure_config import standard_configurations
@@ -14,11 +15,31 @@ class MeasurementScript:
     protocols_directory: Path
     output_script_path: Path
     output_directory: Path = attrs.field(init=False)
+    collate: bool
 
     def __attrs_post_init__(self):
         self.output_directory = self.output_script_path.parent
         assert self.output_directory.exists(), f"Output directory does not exist: {self.output_directory}"
         assert self.protocols_directory.exists(), f"Protocols directory does not exist: {self.protocols_directory}"
+
+    def collate_configurations(self):
+        measurement_matrix = {}
+        for entry in self.entries:
+            parsed_entries = {}
+            if "configurations" in entry.additional_parameters.keys():
+                configurations = standard_configurations(entry.additional_parameters.get("configurations"))
+                for config in configurations:
+                    new_entry = copy.deepcopy(entry)
+                    new_entry.additional_parameters["configuration"] = config
+                    parsed_entries[config] = new_entry
+            else:
+                parsed_entries[0] = entry
+            measurement_matrix[entry.row_index] = parsed_entries
+        if self.collate == True:
+            df = pd.DataFrame.from_dict(measurement_matrix, orient = "columns")
+        else:
+            df = pd.DataFrame.from_dict(measurement_matrix, orient = "index")
+        return df
 
     def generate_script(self):
         script_lines = []
@@ -26,25 +47,13 @@ class MeasurementScript:
         # Script startup
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'setup.py')
 
-        # Find out whether to iterate over configurations first
-        if all(["configurations" in entry.additional_parameters.keys() for entry in self.entries]):
-            unique_entries = set([entry.additional_parameters.get('configurations') for entry in self.entries])
-            if len(unique_entries) == 1:
-                # reshuffle only if all experiments are of the same type
-                keyword = unique_entries.pop()
-                configurations = standard_configurations(keyword)
-                for configuration in configurations:
-                    script_lines += f"configuration = {configuration}" + "\n"
-                    for entry in self.entries:
-                        # Include the measurement protocol template for this entry
-                        script_lines += f"entry = {entry}" + "\n"
-                        script_lines += self.load_protocol_template(entry)
-        else:
-            # For every entry in the logbook
-            for entry in self.entries:
-                # Include the measurement protocol template for this entry
-                script_lines += f"entry = {entry}" + "\n"
-                script_lines += self.load_protocol_template(entry)
+        entry_df = self.collate_configurations()
+        for r, row in entry_df.iterrows():
+            for e, entry in row.items():
+                if type(entry) == Logbook2MouseEntry:
+                    print(f"Generating measurement script for ymd {entry.date}, sample position {entry.sampos}, configuration {entry.additional_parameters['configuration']}")
+                    script_lines += f"entry = {entry}" + "\n"
+                    script_lines += self.load_protocol_template(entry)
 
         # Script shutdown
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'teardown.py')
