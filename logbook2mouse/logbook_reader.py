@@ -57,7 +57,7 @@ class Logbook2MouseEntry:
             "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
             "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
             "samplethickness", "mu", "sampos", "positionx", "positiony", "positionz", 
-            "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes"
+            "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes",
         ]
 
         additional_parameters = {k: v for k, v in series.items() if k not in predefined_fields}

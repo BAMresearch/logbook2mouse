@@ -8,9 +8,12 @@ import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
 import logbook2mouse.metadata as meta
 
-def move_motor(motorname, position: float, prefix: str = "ims", parrot_prefix: str = "pa0"):
+
+def move_motor(
+    motorname, position: float, prefix: str = "ims", parrot_prefix: str = "pa0"
+):
     """Move the motor to the requested value and set parrot PVs."""
-    epics.caput(f"{prefix}:{motorname}", motorpos, wait = True)
+    epics.caput(f"{prefix}:{motorname}", motorpos, wait=True)
     # figure out which parrot variable to use
     if motorname.startswith("s") and motorname != "shutter":
         slitnumber = motorname[1]
@@ -29,12 +32,14 @@ def move_motor(motorname, position: float, prefix: str = "ims", parrot_prefix: s
     actual_value = epics.caget(f"{prefix}:{motorname}")
     epics.caput(parrot_pv, actual_value)
 
+
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    move_motor(motorname, motorpos, prefix=prefix, parrot_prefix = "pa0")
+    move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
     logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
     return motorname, motorpos
+
 
 def moveto_config(
     required_pvs,
@@ -48,20 +53,22 @@ def moveto_config(
     for pv in required_pvs:
         if "shutter" not in pv:
             prefix, motorname = pv.split(":")
-            name, position = move_motor_fromconfig(motorname, imcrawfile=configfile, prefix=prefix)
+            name, position = move_motor_fromconfig(
+                motorname, imcrawfile=configfile, prefix=prefix
+            )
             if name == "bsr":
                 bsr = position
 
     epics.caput("pa0:config:config_id", config_no)
     return {"bsr": position}
 
-def robust_caput(pv, value, timeout = 5):
-    epics.caput(pv, value, timeout = timeout)
+
+def robust_caput(pv, value, timeout=5):
+    epics.caput(pv, value, timeout=timeout)
     new_position = epics.caget(pv)
     while new_position != value:
-        time.sleep(.2)
+        time.sleep(0.2)
         new_position = epics.caget(pv)
-        
 
 
 def measure_profile(
@@ -74,40 +81,42 @@ def measure_profile(
     if not os.path.exists(store_location):
         os.mkdir(store_location)
     if mode == "blank":
-        move_motor("ysam", entry.blankpositiony, prefix = "mc0")
-        move_motor("zsam", entry.blankpositionz, prefix = "mc0")
+        move_motor("ysam", entry.blankpositiony, prefix="mc0")
+        move_motor("zsam", entry.blankpositionz, prefix="mc0")
         beamprofilepath = store_location / "beam_profile"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
     else:
-        move_motor("ysam", entry.positiony, prefix = "mc0")
-        move_motor("zsam", entry.positionz, prefix = "mc0")
+        move_motor("ysam", entry.positiony, prefix="mc0")
+        move_motor("zsam", entry.positionz, prefix="mc0")
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
-    robust_caput("source_cu:shutter", 1, timeout = 5)
+    robust_caput("source_cu:shutter", 1, timeout=5)
     detector.measurement(
-        dEiger_connection, duration=duration, store_location=beamprofilepath,
+        dEiger_connection,
+        duration=duration,
+        store_location=beamprofilepath,
     )
-    robust_caput("source_cu:shutter", 0, timeout = 5)
+    robust_caput("source_cu:shutter", 0, timeout=5)
 
 
 def measure_dataset(
     entry, dEiger_connection, store_location: Path, bsr: float, duration: int = 600
 ):
-    move_motor("bsr", 270, prefix = "ims")
+    move_motor("bsr", 270, prefix="ims")
     for mode in ["blank", "sample"]:
         measure_profile(
             entry, store_location, dEiger_connection, mode=mode, duration=20
         )
-    move_motor("ysam", entry.positiony, prefix = "mc0")
-    move_motor("zsam", entry.positionz, prefix = "mc0")
-    move_motor("bsr", bsr, prefix = "ims")
-    robust_caput("source_cu:shutter", 1, timeout = 5)
+    move_motor("ysam", entry.positiony, prefix="mc0")
+    move_motor("zsam", entry.positionz, prefix="mc0")
+    move_motor("bsr", bsr, prefix="ims")
+    robust_caput("source_cu:shutter", 1, timeout=5)
     detector.measurement(
         dEiger_connection, duration=duration, store_location=store_location
     )
-    robust_caput("source_cu:shutter", 0, timeout = 5)
+    robust_caput("source_cu:shutter", 0, timeout=5)
 
 
 def measure_at_config(
@@ -144,7 +153,9 @@ def measure_at_config(
         next_measurement_no = filemanagement.scan_counter_next(
             scan_counter, work_directory, entry
         )
-        store_location = work_directory / f"{ymd}_{entry.batchnum}_{next_measurement_no}"
+        store_location = (
+            work_directory / f"{ymd}_{entry.batchnum}_{next_measurement_no}"
+        )
         measure_dataset(
             entry,
             dEiger_connection,
