@@ -13,7 +13,7 @@ def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
 ):
     """Move the motor to the requested value and set parrot PVs."""
-    epics.caput(f"{prefix}:{motorname}", motorpos, wait=True)
+    epics.caput(f"{prefix}:{motorname}", position, wait=True)
     # figure out which parrot variable to use
     if motorname.startswith("s") and motorname != "shutter":
         slitnumber = motorname[1]
