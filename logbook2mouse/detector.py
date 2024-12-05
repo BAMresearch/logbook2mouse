@@ -1,4 +1,6 @@
 import os
+import sys
+import time
 from pathlib import Path
 from shutil import move, copyfile
 from time import sleep
@@ -60,6 +62,9 @@ def send_detector_command(DEiger, command, **kwargs):
 def exposition(DEiger, duration=1):
     send_detector_command(DEiger, "arm")
     send_detector_command(DEiger, "trigger", timeout=duration)
+    for i in range(duration,0,-1):
+        print(f"{i}", end="\r", flush=True)
+        time.sleep(1)
     send_detector_command(DEiger, "disarm")
     return "exposition done"
 
