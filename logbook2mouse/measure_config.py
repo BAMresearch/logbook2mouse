@@ -78,9 +78,11 @@ def measure_profile(
     dEiger_connection,
     mode="blank",
     duration: int = 20,  # add functionality to determine time needed later
+    parrot_prefix: str = "pa0"
 ):
     if not os.path.exists(store_location):
         os.mkdir(store_location)
+    epics.caput(f"{parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         move_motor("ysam", entry.blankpositiony, prefix="mc0")
         move_motor("zsam", entry.blankpositionz, prefix="mc0")
@@ -103,8 +105,10 @@ def measure_profile(
 
 
 def measure_dataset(
-    entry, dEiger_connection, store_location: Path, bsr: float, duration: int = 600
+        entry, dEiger_connection, store_location: Path, bsr: float, duration: int = 600,
+        parrot_prefix: str = "pa0",
 ):
+    epics.caput(f"{parrot_prefix}:exp:frame_time", dEiger_connection.frame_time)
     move_motor("bsr", 270, prefix="ims")
     for mode in ["blank", "sample"]:
         measure_profile(
@@ -127,6 +131,7 @@ def measure_at_config(
     dEiger_connection,
     repetitions=None,
     duration: int = 600,
+    parrot_prefix: str = "pa0"
 ):
     """Measure with the default settings for each configuration."""
     config_dict = moveto_config(
