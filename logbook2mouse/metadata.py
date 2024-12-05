@@ -4,13 +4,14 @@ import numpy as np
 import caproto.threading.pyepics_compat as epics
 
 def logbook2parrot(entry, parrot_prefix: str = "pa0"):
-    for item in ["Proposal", "sampleid", "sampos"]:
-        value = entry[item]
-        epics.caput(f"{parrot_prefix}:sample:{item}")
+    for item in ["proposal", "sampleid", "sampos"]:
+        value = getattr(entry, item)
+        epics.caput(f"{parrot_prefix}:sample:{item}", value)
+    epics.caput(f"{parrot_prefix}:exp:operator", entry.user)
 
 def environment2parrot(parrot_prefix: str = "pa0"):
     pressure = epics.caget("pressure_gauge:pressure")
-    epics.caput(f"{parrot_prefix}:environment:pressure")
+    epics.caput(f"{parrot_prefix}:environment:pressure", pressure)
 
 def meta_file_structure(h5file):
     h5file.attrs['default'] = "entry1"
@@ -63,12 +64,12 @@ def meta_file_structure(h5file):
                 nxsaxslab.create_dataset(saxslabattr, data=0.0, dtype = "f")
             if direction == "horizontal":
                 for attribute in ["hl", "hr"]:
-                    saxslabattr = f"{direction[0]}{attribute[0]}{i}"
+                    saxslabattr = f"s{i}{attribute}"
                     # initialize empty
                     nxsaxslab.create_dataset(saxslabattr, data=0.0, dtype = "f")
             else:
                 for attribute in ["top", "bot"]:
-                    saxslabattr = f"{direction[0]}{attribute[0]}{i}"
+                    saxslabattr = f"s{i}{attribute}"
                     # initialize empty
                     nxsaxslab.create_dataset(saxslabattr, data=0.0, dtype = "f")
 
@@ -82,9 +83,9 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
     with h5py.File(os.path.join(store_location, metafile), 'w') as f:
         f = meta_file_structure(f)
 
-        proposal = epics.caget(f"{parrot_prefix}:sample:Proposal")
+        proposal = epics.caget(f"{parrot_prefix}:sample:proposal")
         dataset = f["/entry1/experiment_identifier"]
-        datset[...] = proposal
+        dataset[...] = proposal
 
         configuration = epics.caget(f"{parrot_prefix}:config:config_id")
         dataset = f["/entry1/instrument/configuration"]
@@ -129,7 +130,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
                     bladeattrs = ["top", "bot"]
                 for attribute in bladeattrs:
                     saxslabattr = f"s{i}{attribute}"
-                    parrot_address = f"{parrot_prefix}:config:slits:{direction}{i}:s{i}{attribute}"
+                    parrot_address = f"{parrot_prefix}:config:slits:{direction}{i}:{attribute}"
                     slit_data = epics.caget(parrot_address)
                     dataset = f[f"/saxs/Saxslab/{saxslabattr}"]
                     dataset[...] = slit_data
