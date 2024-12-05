@@ -143,18 +143,25 @@ def measure_at_config(
     meta.logbook2parrot(entry)
 
     if repetitions is None:
-        if config_no in [117, 127]:
+        if int(config_no) in [117, 127]:
             repetitions = 16
-        elif config_no in [115, 125]:
+        elif int(config_no) in [115, 125]:
             repetitions = 10
-        elif config_no in [113, 123]:
+        elif int(config_no) in [113, 123]:
             repetitions = 5
+        elif int(config_no) in [110]:
+            repetitions = 4
         else:
             repetitions = 1
 
+    logger = logging.getLogger("logbook2mouse")
+    logger.info(f"Measuring {repetitions} repetitions.")
+
+    epics.caput(f"{parrot_prefix}:exp:nrep", repetitions)
     scan_counter = 0
     work_directory = filemanagement.work_directory(entry)
     ymd = entry.date.strftime("%Y%m%d")
+    epics.caput(f"{parrot_prefix}:exp:logbook_date", ymd)
     for i in range(repetitions):
         next_measurement_no = filemanagement.scan_counter_next(
             scan_counter, work_directory, entry
