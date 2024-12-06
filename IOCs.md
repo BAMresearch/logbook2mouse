@@ -75,3 +75,11 @@ directory.
 **The best place to put system unit files:** `/etc/systemd/system` Just be sure to add a target under the [Install] section, read "How does it know?" for details. UPDATE: `/usr/local/lib/systemd/system` is another option, read "Gray Area" for details."
 
 **The best place to put user unit files:** `/etc/systemd/user` or `$HOME/.config/systemd/user` but it depends on permissions and the situation. Note also that user services will only run while a user is logged in unless you explicitly enable them to run at boot with `loginctl enable-linger <username>`. "linger" means remain after logout, but also start at boot. In linger mode, a user manager is created at boot, which persists outside of the user session lifecycle.
+
+### Creating the service units
+
+As a regular user, after creating the service unit, for example in `~/synApps/spec2epics/ioc_ims.service` I ran:
+
+    mkdir -p ~/.config/systemd/user
+    ln -s ~/synApps/spec2epics/ioc_ims.service .config/systemd/user/
+    systemctl --user enable ioc_ims
