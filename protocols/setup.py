@@ -7,7 +7,7 @@ from epics import caget
 from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
-from logbook2mouse.__main__ import ExperimentVariables
+from logbook2mouse.experiment import ExperimentVariables
 
 
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
