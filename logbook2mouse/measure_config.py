@@ -118,11 +118,11 @@ def measure_dataset(
     move_motor("zsam", entry.positionz, prefix="mc0")
     move_motor("bsr", bsr, prefix="ims")
     robust_caput("source_cu:shutter", 1, timeout=5)
+    epics.caput(f"{parrot_prefix}:exp:count_time", duration)
     detector.measurement(
         dEiger_connection, duration=duration, store_location=store_location
     )
     robust_caput("source_cu:shutter", 0, timeout=5)
-
 
 def measure_at_config(
     config_no: int,

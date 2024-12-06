@@ -19,7 +19,10 @@ def meta_file_structure(h5file):
     nxentry = h5file.create_group('entry1')
     nxentry.attrs['NX_class'] = 'NXentry'
     nxentry.attrs['default'] = 'instrument'
-    nxentry.create_dataset("experiment_identifier", data="")
+
+    expgroup = nxentry.create_group('experiment')
+    for item in ["experiment_identifier", "operator", "logbook_date"]:
+        expgroup.create_dataset(item, data="")
 
     nxinst = nxentry.create_group('instrument')
     nxinst.attrs['NX_class'] = 'NXinstrument'
@@ -52,7 +55,9 @@ def meta_file_structure(h5file):
 
     # motor positions
 
-    for motor in ["ysam", "zsam", "zheavy", "pitchgi", "rollgi", "yawgi"]:
+    for motor in ["ysam", "zsam",
+                  "zheavy", "pitchgi", "rollgi", "yawgi",
+                  "bsr", "bsz"]:
         # initialize empty
         nxsaxslab.create_dataset(motor, data=0.0, dtype = "f")
 
@@ -84,13 +89,18 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         f = meta_file_structure(f)
 
         proposal = epics.caget(f"{parrot_prefix}:sample:proposal")
-        dataset = f["/entry1/experiment_identifier"]
+        dataset = f["/entry1/experiment/experiment_identifier"]
         dataset[...] = proposal
+
+        for item in ["operator", "logbook_date"]:
+            data = epics.caget(f"{parrot_prefix}:exp:{item}")
+            dataset = f[f"/entry1/experiment/{item}"]
+            dataset[...] = data
 
         configuration = epics.caget(f"{parrot_prefix}:config:config_id")
         dataset = f["/entry1/instrument/configuration"]
         dataset[...] = configuration
-        
+
         count_time = epics.caget(f"{parrot_prefix}:exp:count_time")
         dataset = f["/entry1/instrument/detector00/count_time"]
         dataset[...] = count_time
@@ -99,7 +109,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
             value = epics.caget(f"{parrot_prefix}:sample:{item}")
             dataset = f[f"/entry1/sample/{item}"]
             dataset[...] = value
-        
+
         samplename = epics.caget(f"{parrot_prefix}:sample:samplename")
         dataset = f["/entry1/sample/name"]
         dataset[...] = samplename
@@ -107,6 +117,11 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         for detmotor in ["detx", "dety", "detz"]:
             detdata = epics.caget(f"{parrot_prefix}:config:{detmotor}")
             dataset = f[f"/saxs/Saxslab/{detmotor}"]
+            dataset[...] = detdata
+
+        for bsmotor in ["bsr", "bsz"]:
+            detdata = epics.caget(f"{parrot_prefix}:config:beamstop:{bsmotor}")
+            dataset = f[f"/saxs/Saxslab/{bsmotor}"]
             dataset[...] = detdata
 
         # motor positions
