@@ -1,6 +1,8 @@
 # this code gets run at the start of every script (not at the start of every entry, but the whole script)
 # use this code to check PVs, generators, etc. 
 import logging
+logger = logging.getLogger("measurement")
+logger.setLevel(logging.INFO)
 from epics import caget
 from pandas import Timestamp
 import logbook2mouse.detector as detector
