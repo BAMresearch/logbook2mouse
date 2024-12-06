@@ -10,13 +10,12 @@ if "configuration" in entry.additional_parameters.keys():
 # else:  # specify configuration manually here
 
 # Simulate starting the measurement
-print(f"Starting measurement for sample {entry.sampleid} in configuration {configuration}.")
+print(f"Starting measurement for sample {entry.proposal}-{entry.sampleid} in configuration {configuration}.")
 
 # blank and transmission measurements are included
 measure_at_config(config_no = configuration,
                   entry = entry,
-                  required_pvs = required_pvs,
-                  dEiger_connection = eiger,
-                  # duration=60,  # default: 600
+                  experiment = experiment,
+                  duration=10,  # default: 600
                   # repetitions=16  # default: determined by config number
                   )

@@ -75,14 +75,13 @@ def robust_caput(pv, value, timeout=5):
 def measure_profile(
     entry,
     store_location,
-    dEiger_connection,
+    experiment,
     mode="blank",
     duration: int = 20,  # add functionality to determine time needed later
-    parrot_prefix: str = "pa0"
 ):
     if not os.path.exists(store_location):
         os.mkdir(store_location)
-    epics.caput(f"{parrot_prefix}:exp:count_time", duration)
+    epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         move_motor("ysam", entry.blankpositiony, prefix="mc0")
         move_motor("zsam", entry.blankpositionz, prefix="mc0")
@@ -97,7 +96,7 @@ def measure_profile(
             os.mkdir(beamprofilepath)
     robust_caput("source_cu:shutter", 1, timeout=5)
     detector.measurement(
-        dEiger_connection,
+        experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
@@ -105,37 +104,35 @@ def measure_profile(
 
 
 def measure_dataset(
-        entry, dEiger_connection, store_location: Path, bsr: float, duration: int = 600,
-        parrot_prefix: str = "pa0",
+        entry, experiment, store_location: Path, bsr: float, duration: int = 600,
 ):
-    epics.caput(f"{parrot_prefix}:exp:frame_time", dEiger_connection.frame_time)
+    epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", experiment.eiger.frame_time)
     move_motor("bsr", 270, prefix="ims")
     for mode in ["blank", "sample"]:
         measure_profile(
-            entry, store_location, dEiger_connection, mode=mode, duration=20
+            entry, store_location, experiment, mode=mode, duration=20
         )
     move_motor("ysam", entry.positiony, prefix="mc0")
     move_motor("zsam", entry.positionz, prefix="mc0")
     move_motor("bsr", bsr, prefix="ims")
     robust_caput("source_cu:shutter", 1, timeout=5)
-    epics.caput(f"{parrot_prefix}:exp:count_time", duration)
+    epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     detector.measurement(
-        dEiger_connection, duration=duration, store_location=store_location
+        experiment, duration=duration, store_location=store_location
     )
     robust_caput("source_cu:shutter", 0, timeout=5)
 
 def measure_at_config(
     config_no: int,
     entry,
-    required_pvs,
-    dEiger_connection,
+    experiment,
     repetitions=None,
     duration: int = 600,
-    parrot_prefix: str = "pa0"
 ):
     """Measure with the default settings for each configuration."""
+
     config_dict = moveto_config(
-        required_pvs,
+        experiment.required_pvs,
         config_path=Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
         config_no=config_no,
     )
@@ -157,11 +154,12 @@ def measure_at_config(
     logger = logging.getLogger("measurement")
     logger.info(f"Measuring {repetitions} repetitions.")
 
-    epics.caput(f"{parrot_prefix}:exp:nrep", repetitions)
+    epics.caput(f"{experiment.parrot_prefix}:exp:nrep", repetitions)
     scan_counter = 0
     work_directory = filemanagement.work_directory(entry)
     ymd = entry.date.strftime("%Y%m%d")
-    epics.caput(f"{parrot_prefix}:exp:logbook_date", ymd)
+    epics.caput(f"{experiment.parrot_prefix}:exp:logbook_date", ymd)
+
     for i in range(repetitions):
         next_measurement_no = filemanagement.scan_counter_next(
             scan_counter, work_directory, entry
@@ -171,7 +169,7 @@ def measure_at_config(
         )
         measure_dataset(
             entry,
-            dEiger_connection,
+            experiment,
             store_location=store_location,
             bsr=config_dict["bsr"],
             duration=duration,

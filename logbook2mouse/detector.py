@@ -84,7 +84,8 @@ def measurement_done(DEiger, duration=1, n_files=1):
     return "data uploaded"
 
 
-def measurement(DEiger, duration: int = 1, store_location: Path = Path(".")):
+def measurement(experiment, duration: int = 1, store_location: Path = Path(".")):
+    DEiger = experiment.eiger
     DEiger.client.setDetectorConfig("count_time", duration)
     frame_time = DEiger.frame_time
     DEiger.client.setDetectorConfig("frame_time", frame_time)

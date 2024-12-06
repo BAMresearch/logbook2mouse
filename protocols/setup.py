@@ -7,6 +7,7 @@ from epics import caget
 from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
+from logbook2mouse.__main__ import ExperimentVariables
 
 
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
@@ -40,7 +41,4 @@ for pv in required_pvs:
     if value is None:
         raise ConnectionError(f"PV '{pv}' is not reachable or has no value.")
 
-# connect to and initialize detector parameters
-eiger = detector.DEiger()
-eiger.set_defaults()
-
+experiment = ExperimentVariables(required_pvs)
