@@ -31,6 +31,7 @@ required_pvs = [
     'ims:bsr',
     'ims:bsz',
     'source_cu:shutter',
+    'pressure_gauge:pressure',
 ]
 
 # check that the PVs are reachable before we execute a script:
