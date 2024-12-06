@@ -70,6 +70,10 @@ directory.
 
 ## Notes systemd
 
+**Update:** Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc
+Another insightfull discussion on tech-talk about configuring process limits and various settings independent of systemd: https://epics.anl.gov/tech-talk/2020/msg00537.php
+
+### Place to put them
 (From https://unix.stackexchange.com/a/367237)
 
 **The best place to put system unit files:** `/etc/systemd/system` Just be sure to add a target under the [Install] section, read "How does it know?" for details. UPDATE: `/usr/local/lib/systemd/system` is another option, read "Gray Area" for details."
