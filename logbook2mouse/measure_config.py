@@ -51,8 +51,9 @@ def moveto_config(
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
+    pvs_not_to_move = ["shutter", "pressure", "pa0"]
     for pv in required_pvs:
-        if "shutter" not in pv:
+        if not any(substr in pv for substr in pvs_not_to_move):
             prefix, motorname = pv.split(":")
             name, position = move_motor_fromconfig(
                 motorname, imcrawfile=configfile, prefix=prefix
