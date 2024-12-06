@@ -120,7 +120,7 @@ def measurement(experiment, duration: int = 1, store_location: Path = Path("."))
 
     # get current snapshot of chamber pressure, temperature, ...
     # this is recorded at the end of the measurement time
-    meta.environment2parrot()
+    meta.environment2parrot(experiment)
     # write metadata file
     meta.write_meta_nxs(store_location)
 
