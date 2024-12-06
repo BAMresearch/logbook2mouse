@@ -154,7 +154,7 @@ def measure_at_config(
         else:
             repetitions = 1
 
-    logger = logging.getLogger("logbook2mouse")
+    logger = logging.getLogger("measurement")
     logger.info(f"Measuring {repetitions} repetitions.")
 
     epics.caput(f"{parrot_prefix}:exp:nrep", repetitions)
