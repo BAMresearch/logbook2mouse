@@ -60,11 +60,14 @@ def send_detector_command(DEiger, command, **kwargs):
 
 
 def exposition(DEiger, duration=1):
+    print("Arming detector..." + " "*30, end="\r", flush=True)
     send_detector_command(DEiger, "arm")
     send_detector_command(DEiger, "trigger", timeout=duration)
     for i in range(duration,0,-1):
-        print(f"{i}", end="\r", flush=True)
+        print(f"\r{i} seconds remaining for the current exposure  ",
+              end='\r', flush=True)
         time.sleep(1)
+    print("Disarming detector..." + " "*30, end="\r", flush=True)
     send_detector_command(DEiger, "disarm")
     return "exposition done"
 
