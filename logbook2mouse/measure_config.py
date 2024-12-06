@@ -7,7 +7,7 @@ import caproto.threading.pyepics_compat as epics
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
 import logbook2mouse.metadata as meta
-
+from logbook2mouse.experiment import get_address
 
 def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
@@ -83,6 +83,7 @@ def measure_profile(
         os.mkdir(store_location)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
+        # to do: determine motors from pvs, or logbook
         move_motor("ysam", entry.blankpositiony, prefix="mc0")
         move_motor("zsam", entry.blankpositionz, prefix="mc0")
         beamprofilepath = store_location / "beam_profile"
@@ -104,10 +105,12 @@ def measure_profile(
 
 
 def measure_dataset(
-        entry, experiment, store_location: Path, bsr: float, duration: int = 600,
+        entry, experiment, store_location: Path, duration: int = 600,
 ):
     epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", experiment.eiger.frame_time)
-    move_motor("bsr", 270, prefix="ims")
+    bsr_addr = get_address(experiment, "bsr")
+    bsr = epics.caget(bsr_addr)
+    move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
     for mode in ["blank", "sample"]:
         measure_profile(
             entry, store_location, experiment, mode=mode, duration=20
@@ -171,7 +174,6 @@ def measure_at_config(
             entry,
             experiment,
             store_location=store_location,
-            bsr=config_dict["bsr"],
             duration=duration,
         )
 
