@@ -2,9 +2,12 @@ import logging
 from pathlib import Path
 import sys
 import argparse
+import attrs
+from typing import List
 
 from logbook2mouse.logbook_reader import Logbook2MouseReader
 from logbook2mouse.measurement_script import MeasurementScript
+from logbook2mouse.detector import DEiger
 
 def configure_logging(log_level: int, log_to_file: bool = False, log_file_path: str = "logbook2mouse.log"):
     # Create a logger
@@ -57,6 +60,16 @@ def parse_args():
         help="Collate the measurements by configuration",
     )
     return parser.parse_args()
+
+@attrs.define
+class ExperimentVariables:
+    required_pvs: List[str]
+    eiger = DEiger()
+    parrot_prefix: str = "pa0"
+
+    def __attrs_post_init__(self):
+        self.eiger.set_defaults()
+
 
 
 if __name__ == "__main__":
