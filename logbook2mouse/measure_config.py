@@ -183,6 +183,8 @@ def standard_configurations(keyword: str = "standard"):
         configurations = [110, 123, 125, 127]
     else:
         raise ValueError(
-            f"Configuration set {keyword} is not defined. Specify the configurations to measure explicitly one by one, with e.g. 'key1=configuration' and 'value1=123' for configuration 123."
+            f"""Configuration set {keyword} is not defined. 
+Specify the configurations to measure explicitly one by one, 
+with e.g. 'key1=configuration' and 'value1=123' for configuration 123."""
         )
     return configurations
