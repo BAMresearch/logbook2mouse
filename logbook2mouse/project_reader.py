@@ -137,7 +137,7 @@ class Sample:
 
 
 @attrs.define
-class ExcelProjectReader:
+class ProjectReader:
     file_path: Path = attrs.field(validator=attrs.validators.instance_of(Path))
     project_info: ProjectInfo = attrs.field(init=False)
     samples: List[Sample] = attrs.field(init=False)
@@ -203,7 +203,7 @@ class ExcelProjectReader:
 
 if __name__ == "__main__":
     file_path = Path("project/Project_Form_5.0.xlsx")
-    reader = ExcelProjectReader(file_path=file_path)
+    reader = ProjectReader(file_path=file_path)
 
     # Project Information
     print(reader.project_info)
