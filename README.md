@@ -1,6 +1,6 @@
 # Logbook2Mouse
 
-This library reads a measurement logbook and generates a script for a SAXS instrument.
+This library reads a measurement logbook and generates a script for a SAXS instrument. Currently still under development.
 
 ## Installation
 
