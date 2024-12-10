@@ -1,19 +1,22 @@
 from pathlib import Path
+import numpy as np
 import pandas as pd
 import attrs
 from typing import Dict, List, Optional
 import periodictable as pt
-# from periodictable.xsf import xray_sld
+import logging
 
-
-def validate_fraction(instance, attribute, value):
-    if value is not None and (value < 0 or value > 1):
-        raise ValueError(f"{attribute.name} must be between 0 and 1 or None.")
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def validate_density(instance, attribute, value):
     if value <= 0:
         raise ValueError(f"{attribute.name} must be a positive float.")
+
+
+def nan_to_none(value):
+    """Convert NaN to None."""
+    return None if value is None or (isinstance(value, float) and np.isnan(value)) else value
 
 
 def compute_mass_fraction(volume_fraction: float, density: float) -> float:
@@ -43,17 +46,19 @@ class ProjectInfo:
 class SampleComponent:
     component_id: str = attrs.field()
     composition: str = attrs.field(validator=lambda _, __, value: pt.formula(value))
-    density: float = attrs.field(validator=validate_density, default=1.0)
-    volume_fraction: Optional[float] = attrs.field(validator=validate_fraction, default=None)
-    mass_fraction: Optional[float] = attrs.field(validator=validate_fraction, default=None)
+    density: float = attrs.field(validator=validate_density, default=1.0) # negative density to force user to provide it
+    volume_fraction: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(attrs.validators.instance_of(float)), default=None)
+    mass_fraction: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(attrs.validators.instance_of(float)), default=None)
     connection: Optional[str] = attrs.field(default=None)
     connected_to: Optional[str] = attrs.field(default=None)
     name: str = attrs.field(default="")
 
     def __attrs_post_init__(self):
         if self.volume_fraction is None and self.mass_fraction is not None:
+            print(f"Computing volume fraction for component {self.component_id} using mass fraction {self.mass_fraction} and density {self.density}.")
             self.volume_fraction = compute_volume_fraction(self.mass_fraction, self.density)
         elif self.mass_fraction is None and self.volume_fraction is not None:
+            print(f"Computing mass fraction for component {self.component_id} using volume fraction {self.volume_fraction} and density {self.density}.")
             self.mass_fraction = compute_mass_fraction(self.volume_fraction, self.density)
 
     def calculate_xray_properties(self, energy_keV: float) -> Dict[str, float]:
@@ -61,7 +66,7 @@ class SampleComponent:
         material = pt.formula(self.composition)
         sld, mu = pt.xray_sld(material, energy=energy_keV, density=self.density)
         # mu = material.mass * self.density * sld.imag  # Absorption coefficient approximation
-        return {"mu": mu, "sld": sld.real}
+        return {"mu": mu, "sld": sld}
 
 
 @attrs.define
@@ -79,15 +84,15 @@ class Sample:
             c.mass_fraction for c in self.components if c.mass_fraction is not None
         )
 
-        if total_volume > 1.0:
-            for c in self.components:
-                if c.volume_fraction is not None:
-                    c.volume_fraction /= total_volume
+        # if total_volume > 1.0:
+        for c in self.components:
+            if c.volume_fraction is not None:
+                c.volume_fraction /= total_volume
 
-        if total_mass > 1.0:
-            for c in self.components:
-                if c.mass_fraction is not None:
-                    c.mass_fraction /= total_mass
+        # if total_mass > 1.0:
+        for c in self.components:
+            if c.mass_fraction is not None:
+                c.mass_fraction /= total_mass
 
     def calculate_overall_properties(self, energy_keV: float) -> Dict[str, float]:
         """Calculate overall X-ray properties for the sample."""
@@ -95,6 +100,7 @@ class Sample:
 
         overall_mu = 0.0
         for c in self.components:
+            print(c)
             props = c.calculate_xray_properties(energy_keV)
             vf = c.volume_fraction if c.volume_fraction is not None else 0
             overall_mu += props["mu"] * vf
