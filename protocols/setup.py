@@ -34,6 +34,7 @@ required_pvs = [
     'source_cu:shutter',
     'pressure_gauge:pressure',
     'pa0:sample:proposal',
+    'image:ratio',
 ]
 
 # check that the PVs are reachable before we execute a script:
