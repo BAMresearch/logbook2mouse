@@ -71,15 +71,36 @@ class SampleComponent:
         # mu = material.mass * self.density * sld.imag  # Absorption coefficient approximation
         return {"mu": mu, "sld": sld}
 
+def flexible_int_converter(value):
+    """Convert value to an int, handling strings like '1.0' gracefully."""
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        raise ValueError(f"Cannot convert {value} to an integer.")
 
 @attrs.define
 class Sample:
-    sample_id: str = attrs.field()
-    sample_name: str = attrs.field()
+    sample_id: int = attrs.field(converter=flexible_int_converter, validator=attrs.validators.instance_of(int))
+    sample_name: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str))
+    composition: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str), init=False)
+    natural_density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None) # if the overall density of the sample is known, it can be provided, perhaps later for use for more accutate mu calculation
+    formula: Optional[pt.formula] = attrs.field(default=None, init=False) # will be generated when we know all the components. has amongst its attributes atoms (dict with atom and number), density (estimate from components) and xray_sld (imaginary part might be useful for absorption)
     components: List[SampleComponent] = attrs.field(factory=list)
 
     def __attrs_post_init__(self):
         self.normalize_fractions()
+        try:
+            self.generate_overall_formula()
+            self.composition=''.join([f"{k}{v}" for k, v in self.formula.atoms.items()])
+        except Exception as e:
+            logger.error(f"Error generating overall formula for sample {self.sample_id}: {e}")
+
+    def generate_overall_formula(self):
+        mix_components = []
+        for c in self.components:
+            mix_components += [c] 
+            mix_components += [c.volume_fraction]
+        self.formula = pt.mix_by_volume(*mix_components, natural_density=self.natural_density)
 
     def normalize_fractions(self):
         """Normalize volume and mass fractions to ensure their sum does not exceed 1."""
