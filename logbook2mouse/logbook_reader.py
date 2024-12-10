@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 import attrs
 from typing import Dict, Generator, List, Optional, Union
+from project_reader import ProjectReader, Sample, ProjectInfo
 
 # Convenience functions for date formatting
 def convert_date_to_string(date: pd.Timestamp) -> str:
@@ -92,12 +93,19 @@ class Logbook2MouseEntry:
 
 @attrs.define
 class Logbook2MouseReader:
-    file_path: Path = attrs.field(validator=[attrs.validators.instance_of(Path), lambda inst, attr, value: value.is_file() or ValueError(f"File {value} does not exist.")])
-    entries: List[Logbook2MouseEntry] = attrs.field(init=False)
+    file_path: Path = attrs.field(validator=[attrs.validators.instance_of(Path), lambda inst, attr, value: value.is_file() or ValueError(f"Logbook file: {value} does not exist.")])
+    project_base_path: Path = attrs.field(validator=[attrs.validators.instance_of(Path), lambda inst, attr, value: value.is_dir() or ValueError(f"Base project directory: {value} cannot be accessed.")])
+    entries: List[Logbook2MouseEntry] = attrs.field(init=False, factory=list) # entries
+    projects: List[ProjectInfo] = attrs.field(init=False, factory=list) # their associated projects (most of which will be the same)
+    samples: List[Sample] = attrs.field(init=False, factory=list) # their associated samples
+    _preloaded_projects: Dict[str, ProjectInfo] = attrs.field(init=False, factory=dict) # cache for preloaded projects. key is the project ID
 
     def __attrs_post_init__(self):
         self.entries = self.get_entries()
-
+        self.gather_projects
+        self.projects = [self.get_project(entry.proposal) for entry in self.entries]
+        self.samples = [self.get_sample(entry.proposal, entry.sampleid) for entry in self.entries]
+        
     def read_logbook(self) -> pd.DataFrame:
         # Specify column types and converters for custom conversion if needed
         dtype_spec = {
@@ -153,12 +161,30 @@ class Logbook2MouseReader:
         # entries = []
         entries = [Logbook2MouseEntry.from_series(row) for _, row in df.iterrows() if row["converttoscript"] == 1]
 
-        # for idx, row in df.iterrows():
-        #     if row["converttoscript"] == 1:
-        #         self.entries += Logbook2MouseEntry.from_series(row)
-        
         return entries
-        
+
+    def get_project(self, projectID) -> ProjectInfo:
+        if projectID in self._preloaded_projects:
+            return self._preloaded_projects[projectID]
+        else:
+            project_file = self.project_base_path / f"{projectID}.xlsx"
+            if project_file.is_file():
+                project = ProjectReader(file_path=project_file).project_info
+                self._preloaded_projects[projectID] = project
+                return project
+            else:
+                raise FileNotFoundError(f"Project file {project_file} not found.")
+
+    def gather_projects(self) -> List[ProjectInfo]:
+        projects = []
+        for entry in self.entries:
+            # just load them in the cache so we have them available
+            _ = self.get_project(entry.proposal)
+
+    def get_sample(self, projectID, sampleID) -> Sample:
+        project = self.get_project(projectID)
+        return next((s for s in project.samples if s.sample_id == sampleID), None)
+
     def entries_iterator(self) -> Generator[Logbook2MouseEntry, None, None]:
         for idx, entry in self.entries.items():
             yield idx, entry
