@@ -5,6 +5,7 @@ import attrs
 from typing import Dict, List, Optional
 import periodictable as pt
 import logging
+import xraydb
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -55,16 +56,18 @@ class SampleComponent:
 
     def __attrs_post_init__(self):
         if self.volume_fraction is None and self.mass_fraction is not None:
-            print(f"Computing volume fraction for component {self.component_id} using mass fraction {self.mass_fraction} and density {self.density}.")
+            logger.info(f"Computing volume fraction for component {self.component_id} using mass fraction {self.mass_fraction} and density {self.density}.")
             self.volume_fraction = compute_volume_fraction(self.mass_fraction, self.density)
         elif self.mass_fraction is None and self.volume_fraction is not None:
-            print(f"Computing mass fraction for component {self.component_id} using volume fraction {self.volume_fraction} and density {self.density}.")
+            logger.info(f"Computing mass fraction for component {self.component_id} using volume fraction {self.volume_fraction} and density {self.density}.")
             self.mass_fraction = compute_mass_fraction(self.volume_fraction, self.density)
 
     def calculate_xray_properties(self, energy_keV: float) -> Dict[str, float]:
         """Calculate X-ray properties using the periodictable library."""
         material = pt.formula(self.composition)
         sld, mu = pt.xray_sld(material, energy=energy_keV, density=self.density)
+        # for now since I can't seem to figure it out, let's use xraydb for mu calculation:
+        mu=xraydb.material_mu(self.composition, energy=energy_keV*1000, density=self.density)*100 # 1/m 
         # mu = material.mass * self.density * sld.imag  # Absorption coefficient approximation
         return {"mu": mu, "sld": sld}
 
@@ -74,6 +77,9 @@ class Sample:
     sample_id: str = attrs.field()
     sample_name: str = attrs.field()
     components: List[SampleComponent] = attrs.field(factory=list)
+
+    def __attrs_post_init__(self):
+        self.normalize_fractions()
 
     def normalize_fractions(self):
         """Normalize volume and mass fractions to ensure their sum does not exceed 1."""
@@ -96,11 +102,10 @@ class Sample:
 
     def calculate_overall_properties(self, energy_keV: float) -> Dict[str, float]:
         """Calculate overall X-ray properties for the sample."""
-        self.normalize_fractions()
 
         overall_mu = 0.0
         for c in self.components:
-            print(c)
+            logger.info(c)
             props = c.calculate_xray_properties(energy_keV)
             vf = c.volume_fraction if c.volume_fraction is not None else 0
             overall_mu += props["mu"] * vf
