@@ -44,7 +44,7 @@ def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
 
 def moveto_config(
     required_pvs,
-    config_path: Path = Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
+    config_path: Path = Path("/home/ws8665-epics/data/configurations"),
     config_no: int = 110,
 ):
     configfile = config_path / f"{config_no}.nxs"
