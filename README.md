@@ -26,6 +26,15 @@ The proposal file name (used as the ProposalID) *must* start with the four-digit
 [YYYY][nnn].xlsx for these proposal sheets, but in principle you're free to use how you adapt the second part of the
 filename. 
 
+### a word on specifying sample composition
+The samples must have the components specified, with an atomic composition and a density estimate (not a range!). 
+Please be careful to ensure the compositions and densities are machine-interpretable, so atomic compositions should
+be specified like (C2H4)213NaCl(H2O)5 and not (C2H4)n(H2O)x because we don't know what n and x are... Estimates are 
+good enough if you don't know precisely. 
+
+The same holds for density esimates. Don't write a range (1.4 - 1.6) or (~1.2), because this cannot be interpreted. 
+Stick to a single representative value when you can. Again, use a reasonable estimate.
+
 ## Usage
 
 ```bash
