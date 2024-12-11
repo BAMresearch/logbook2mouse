@@ -177,8 +177,6 @@ def measure_at_config(
     work_directory = filemanagement.work_directory(entry)
     ymd = entry.date.strftime("%Y%m%d")
     epics.caput(f"{experiment.parrot_prefix}:exp:logbook_date", ymd)
-    epics.caput(f"{experiment.parrot_prefix}:sample:samplename", entry.sample.sample_name)
-    epics.caput(f"{experiment.parrot_prefix}:sample:owner", entry.project.name)
 
     for i in range(repetitions):
         next_measurement_no = filemanagement.scan_counter_next(
