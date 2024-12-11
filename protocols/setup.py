@@ -7,6 +7,7 @@ from epics import caget
 from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
+from logbook2mouse.project_reader import ProjectInfo
 from logbook2mouse.experiment import ExperimentVariables
 
 
