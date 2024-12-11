@@ -8,6 +8,7 @@ import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
 import logbook2mouse.metadata as meta
 from logbook2mouse.experiment import get_address
+from logbook2mouse.logbook_reader import Logbook2MouseEntry
 
 def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
@@ -32,6 +33,22 @@ def move_motor(
     actual_value = epics.caget(f"{prefix}:{motorname}")
     epics.caput(parrot_pv, actual_value)
     return actual_value
+
+def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = False):
+    """Move the motors according to the sample position entries."""
+    for motor in entry.sampleposition.keys():
+        if "blank" in motor:
+            motorname = motor.rstrip(".blank")
+        else:
+            motorname = motor
+        addr = get_address(experiment, motorname)
+        if blank:
+            if "blank" in motor:
+                move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+        else:
+            if "blank" not in motor:
+                move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+
 
 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
@@ -85,14 +102,12 @@ def measure_profile(
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         # to do: determine motors from pvs, or logbook
-        move_motor("ysam", entry.blankpositiony, prefix="mc0")
-        move_motor("zsam", entry.blankpositionz, prefix="mc0")
+        move_to_sampleposition(experiment, entry, blank = True)
         beamprofilepath = store_location / "beam_profile"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
     else:
-        move_motor("ysam", entry.positiony, prefix="mc0")
-        move_motor("zsam", entry.positionz, prefix="mc0")
+        move_to_sampleposition(experiment, entry, blank = False)
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
@@ -116,8 +131,7 @@ def measure_dataset(
         measure_profile(
             entry, store_location, experiment, mode=mode, duration=20
         )
-    move_motor("ysam", entry.positiony, prefix="mc0")
-    move_motor("zsam", entry.positionz, prefix="mc0")
+    move_to_sampleposition(experiment, entry)
     move_motor("bsr", bsr, prefix="ims")
     robust_caput("source_cu:shutter", 1, timeout=5)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
