@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import attrs
 from typing import Dict, Generator, List, Optional, Union
-from .project_reader import ProjectReader, Sample, ProjectInfo
+from .project_reader import ProjectReader, Sample, ProjectInfo, flexible_int_converter
 from .sample_environment_reader import SampleEnvironmentReader
 
 # Convenience functions for date formatting
@@ -18,7 +18,7 @@ def optional_converter(converter):
 
 @attrs.define
 class Logbook2MouseEntry:
-    int_field = lambda: attrs.field(converter=int, validator=attrs.validators.instance_of(int))
+    int_field = lambda: attrs.field(converter=flexible_int_converter, validator=attrs.validators.instance_of(int))
     float_field = lambda: attrs.field(converter=float, validator=attrs.validators.instance_of(float))
     str_field = lambda: attrs.field(converter=str, validator=attrs.validators.instance_of(str))
     datetime_field = lambda: attrs.field(converter=pd.to_datetime, validator=attrs.validators.instance_of(pd.Timestamp))
@@ -31,7 +31,11 @@ class Logbook2MouseEntry:
     converttoscript: int = int_field()
     date: pd.Timestamp = datetime_field()
     proposal: str = str_field()
-    sampleid: str = str_field()
+    project: Optional[ProjectInfo] = attrs.field(init=False, default=None)
+    sampos: str = str_field()
+    sample: Optional[Sample] = attrs.field(init=False, default=None)
+    sampleposition: Optional[Dict[str, float]] = attrs.field(init=False, default=None)
+    sampleid: int = int_field()
     user: str = str_field()
     batchnum: int = int_field()
     bgdate: Optional[pd.Timestamp] = optional_datetime_field()
@@ -40,7 +44,6 @@ class Logbook2MouseEntry:
     dbgnumber: Optional[int] = optional_int_field()
     matrixfraction: float = float_field()
     samplethickness: float = float_field()
-    sampos: str = str_field()
     protocol: str = str_field()
     procpipeline: Optional[str] = optional_str_field()
     notes: Optional[str] = optional_str_field()
@@ -97,7 +100,19 @@ class Logbook2MouseReader:
         self.samples = [self.get_sample(entry.proposal, entry.sampleid) for entry in self.entries]
         self.gather_positions()
         self.positions = [self.get_position(entry.sampos) for entry in self.entries]
+        self.update_entries_with_project_and_sample()
+        self.update_entries_with_positions()
+        print(self.entries[3])
         
+    def update_entries_with_project_and_sample(self):
+        for entry in self.entries:
+            entry.project = self.get_project(entry.proposal)
+            entry.sample = self.get_sample(entry.proposal, entry.sampleid)
+
+    def update_entries_with_positions(self):
+        for entry in self.entries:
+            entry.sampleposition = self.get_position(entry.sampos)
+
     def read_logbook(self) -> pd.DataFrame:
         # Specify column types and converters for custom conversion if needed
         dtype_spec = {
@@ -145,7 +160,6 @@ class Logbook2MouseReader:
         df = self.read_logbook()
         # entries = []
         entries = [Logbook2MouseEntry.from_series(row) for _, row in df.iterrows() if row["converttoscript"] == 1]
-
         return entries
 
     def get_all_entries(self) -> List[Logbook2MouseEntry]:
@@ -157,7 +171,7 @@ class Logbook2MouseReader:
 
     def get_project(self, projectID) -> ProjectInfo:
         if projectID in self._preloaded_projects:
-            return self._preloaded_projects[projectID]
+            project = self._preloaded_projects[projectID]
         else:
             print(f"Reading project {projectID}")
             # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
@@ -165,9 +179,11 @@ class Logbook2MouseReader:
             if project_file.is_file():
                 project = ProjectReader(file_path=project_file).project_info
                 self._preloaded_projects[projectID] = project
-                return project
             else:
                 raise FileNotFoundError(f"Project file {project_file} not found.")
+        # if not with_samples: # this will probably also remove the samples from the original object. 
+        #     project.samples = []
+        return project
 
     def gather_projects(self) -> List[ProjectInfo]:
         for entry in self.entries:
@@ -183,7 +199,9 @@ class Logbook2MouseReader:
 
     def get_sample(self, projectID, sampleID) -> Sample:
         project = self.get_project(projectID)
-        return next((s for s in project.samples if s.sample_id == sampleID), None)
+        # print(f'Getting sample {sampleID} from available samples in project {project.samples.keys()}')
+        return project.samples.get(sampleID, None)
+        # return next((s for s in project.samples if s.sample_id == sampleID), None)
 
     def entries_iterator(self) -> Generator[Logbook2MouseEntry, None, None]:
         for idx, entry in self.entries.items():

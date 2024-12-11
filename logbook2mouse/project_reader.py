@@ -130,7 +130,7 @@ class ProjectInfo:
     email: str = attrs.field()
     title: str = attrs.field()
     description: str = attrs.field()
-    samples: List[Sample] = attrs.field(factory=list, validator=attrs.validators.deep_iterable(member_validator=attrs.validators.instance_of(Sample)))
+    samples: Dict[int, Sample] = attrs.field(factory=dict, validator=attrs.validators.deep_mapping(key_validator=attrs.validators.instance_of(int), value_validator=attrs.validators.instance_of(Sample)))
     release_location: Optional[str] = attrs.field(default=None)
     no_co_authorship_reason: Optional[str] = attrs.field(default=None)
     co_authorship: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
@@ -140,7 +140,6 @@ class ProjectInfo:
 class ProjectReader:
     file_path: Path = attrs.field(validator=attrs.validators.instance_of(Path))
     project_info: ProjectInfo = attrs.field(init=False)
-    # samples: List[Sample] = attrs.field(init=False)
 
     def __attrs_post_init__(self):
         self.project_info = self._read_project_info()
@@ -178,10 +177,10 @@ class ProjectReader:
         if current_sample:  # Add the last sample group
             sample_groups.append(current_sample)
 
-        samples = []
+        samples = {}
         for group in sample_groups:
             sample_df = pd.DataFrame(group)
-            sample_id = str(sample_df.iloc[0]["sampleId"])
+            sample_id = flexible_int_converter(sample_df.iloc[0]["sampleId"])
             sample_name = sample_df.iloc[0]["sampleName"]
 
             components = [
@@ -199,7 +198,7 @@ class ProjectReader:
                 if pd.notna(row["componentId"])
             ]
 
-            samples.append(Sample(sample_id=sample_id, sample_name=sample_name, components=components))
+            samples.update({sample_id: Sample(sample_id=sample_id, sample_name=sample_name, components=components)})
 
         return samples
 
@@ -211,6 +210,6 @@ if __name__ == "__main__":
     print(reader.project_info)
 
     # Sample Information
-    for sample in reader.project_info.samples:
+    for sample in reader.project_info.samples.values():
         print(sample)
         print(sample.calculate_overall_properties(energy_keV=8.05))  # Copper K-alpha energy
