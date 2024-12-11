@@ -4,6 +4,7 @@ import attrs
 from typing import Dict, Generator, List, Optional, Union
 from .project_reader import ProjectReader, Sample, ProjectInfo, flexible_int_converter
 from .sample_environment_reader import SampleEnvironmentReader
+from .generate_tree import generate_tree
 
 # Convenience functions for date formatting
 def convert_date_to_string(date: pd.Timestamp) -> str:
@@ -102,6 +103,7 @@ class Logbook2MouseReader:
         self.positions = [self.get_position(entry.sampos) for entry in self.entries]
         self.update_entries_with_project_and_sample()
         self.update_entries_with_positions()
+        print(generate_tree(self.entries[0], omit_keys=["samples"]))
         # print(self.entries[3])
         
     def update_entries_with_project_and_sample(self):
