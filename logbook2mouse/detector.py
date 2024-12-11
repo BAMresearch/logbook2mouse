@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 import logging
 from attrs import define, field, validators
-from .deigerclient import DEigerClient
+from DEigerClient import DEigerClient
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.metadata as meta
 
