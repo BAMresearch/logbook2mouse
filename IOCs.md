@@ -70,7 +70,52 @@ directory.
 
 ## Notes systemd
 
-**Update:** Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc
+1. Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc/README.md
+
+2. Make sure the directory for the IOCs exists and is configured:
+
+        sudo mkdir -p /opt/epics
+        cd /opt/epics
+        sudo sed -i -e "/^IOCPATH/{ s/^\(IOCPATH=\)/#\1/;aIOCPATH=$(pwd)" -e "}" /usr/local/systemd-softioc/epics-softioc.conf
+
+3. For the first IOC setup, run:
+
+        mkdir -p /opt/epics/ioc_ims
+        cd /opt/epics/ioc_ims
+        cat << EOF > config
+            NAME=$(basename "$(pwd)")
+            PORT=$(manage-iocs nextport)
+            HOST=$(hostname -s)
+            USER=$(id -un)
+            CHDIR="\$CHDIR/../spec2epics"
+            EXEC="\$CHDIR/generated/moxa05.cmd"
+        EOF
+
+4. Check the currently set up IOCs ('$' indicates the command, other lines are output):
+
+        $ manage-iocs report
+        BASE            | IOC             | USER            |  PORT | EXEC
+        /opt/epics      | ioc_ims         | poduser         |  4050 | /opt/epics/ioc_ims/../spec2epics/generated/moxa05.cmd
+
+5. Install the IOC ('$' indicates the command, other lines are output):
+
+        $ sudo manage-iocs install ioc_ims
+        Installing IOC /opt/epics/ioc_ims ...
+        the unit file /etc/systemd/system/softioc-ioc_ims.service has been created
+        To start the IOC:
+        manage-iocs start ioc_ims
+
+6. Start the IOC ('$' indicates the command, other lines are output):
+
+        $ sudo manage-iocs start ioc_ims
+        Starting the IOC 'ioc_ims' ...
+        The IOC 'ioc_ims' has been started successfully
+        Do you want to enable auto-start 'ioc_ims' at boot? Type 'yes' if you do. yes
+        Created symlink /etc/systemd/system/multi-user.target.wants/softioc-ioc_ims.service → /etc/systemd/system/softioc-ioc_ims.service.
+        auto-start the IOC 'ioc_ims' at boot has been enabled successfully
+
+### Beyond systemd
+
 Another insightfull discussion on tech-talk about configuring process limits and various settings independent of systemd: https://epics.anl.gov/tech-talk/2020/msg00537.php
 
 ### Place to put them
