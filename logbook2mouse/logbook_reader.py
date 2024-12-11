@@ -38,27 +38,33 @@ class Logbook2MouseEntry:
     dbgnumber: Optional[int] = optional_int_field()
     matrixfraction: float = float_field()
     samplethickness: float = float_field()
-    mu: float = float_field()
+    # mu: float = float_field()
     sampos: str = str_field()
-    positionx: float = float_field()
-    positiony: float = float_field()
-    positionz: float = float_field()
-    blankpositiony: Optional[float] = optional_float_field()
-    blankpositionz: Optional[float] = optional_float_field()
+    # positionx: float = float_field()
+    # positiony: float = float_field()
+    # positionz: float = float_field()
+    # blankpositiony: Optional[float] = optional_float_field()
+    # blankpositionz: Optional[float] = optional_float_field()
     protocol: str = str_field()
     procpipeline: Optional[str] = optional_str_field()
-    maskdate: Optional[pd.Timestamp] = optional_datetime_field()
+    # maskdate: Optional[pd.Timestamp] = optional_datetime_field()
     notes: Optional[str] = optional_str_field()
     additional_parameters: Dict[str, str] = attrs.field(converter=lambda x: {str(k): str(v) for k, v in x.items()}, validator=attrs.validators.instance_of(dict))
 
     @classmethod
     def from_series(cls, series: pd.Series):
         # Use the series to create the entry by passing it directly to the constructor
+        # predefined_fields = [
+        #     "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
+        #     "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
+        #     "samplethickness", "mu", "sampos", "positionx", "positiony", "positionz", 
+        #     "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes",
+        # ]
         predefined_fields = [
             "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
             "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
-            "samplethickness", "mu", "sampos", "positionx", "positiony", "positionz", 
-            "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes",
+            "samplethickness", "sampos", 
+            "protocol", "procpipeline", "notes",
         ]
 
         additional_parameters = dict(zip(series.filter(like="key").values, series.filter(like="val").values))
@@ -77,16 +83,16 @@ class Logbook2MouseEntry:
             dbgnumber=series["dbgnumber"],
             matrixfraction=series["matrixfraction"],
             samplethickness=series["samplethickness"],
-            mu=series["mu"],
+            # mu=series["mu"],
             sampos=series["sampos"],
-            positionx=series["positionx"],
-            positiony=series["positiony"],
-            positionz=series["positionz"],
-            blankpositiony=series["blankpositiony"],
-            blankpositionz=series["blankpositionz"],
+            # positionx=series["positionx"],
+            # positiony=series["positiony"],
+            # positionz=series["positionz"],
+            # blankpositiony=series["blankpositiony"],
+            # blankpositionz=series["blankpositionz"],
             protocol=series["protocol"],
             procpipeline=series["procpipeline"],
-            maskdate=series["maskdate"],
+            # maskdate=series["maskdate"],
             notes=series["notes"],
             additional_parameters=additional_parameters
         )
@@ -121,16 +127,16 @@ class Logbook2MouseReader:
             "dbgnumber": "Int64",
             "matrixfraction": "float",
             "samplethickness": "float",
-            "mu": "float",
+            # "mu": "float",
             "sampos": "string",
-            "positionx": "float",
-            "positiony": "float",
-            "positionz": "float",
-            "blankpositiony": "float",
-            "blankpositionz": "float",
+            # "positionx": "float",
+            # "positiony": "float",
+            # "positionz": "float",
+            # "blankpositiony": "float",
+            # "blankpositionz": "float",
             "protocol": "string",
             "procpipeline": "string",
-            "maskdate": "datetime64[ns]",
+            # "maskdate": "datetime64[ns]",
             "notes": "string"
         }
 
@@ -140,7 +146,7 @@ class Logbook2MouseReader:
                 header=2,
                 engine="openpyxl",
                 usecols=lambda x: x not in ["Unnamed: 0", None],
-                parse_dates=["date", "bgdate", "dbgdate", "maskdate"],
+                parse_dates=["date", "bgdate", "dbgdate"],
                 dtype=dtype_spec,
                 na_values=None #["NA", "N/A", "-", " "]
             )
