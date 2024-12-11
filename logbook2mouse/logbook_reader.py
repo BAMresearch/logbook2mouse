@@ -3,6 +3,7 @@ import pandas as pd
 import attrs
 from typing import Dict, Generator, List, Optional, Union
 from .project_reader import ProjectReader, Sample, ProjectInfo
+from .sample_environment_reader import SampleEnvironmentReader
 
 # Convenience functions for date formatting
 def convert_date_to_string(date: pd.Timestamp) -> str:
@@ -13,6 +14,7 @@ def extract_year_from_date(date: pd.Timestamp) -> int:
 
 def optional_converter(converter):
     return lambda x: converter(x) if pd.notna(x) else None
+
 
 @attrs.define
 class Logbook2MouseEntry:
@@ -38,28 +40,15 @@ class Logbook2MouseEntry:
     dbgnumber: Optional[int] = optional_int_field()
     matrixfraction: float = float_field()
     samplethickness: float = float_field()
-    # mu: float = float_field()
     sampos: str = str_field()
-    # positionx: float = float_field()
-    # positiony: float = float_field()
-    # positionz: float = float_field()
-    # blankpositiony: Optional[float] = optional_float_field()
-    # blankpositionz: Optional[float] = optional_float_field()
     protocol: str = str_field()
     procpipeline: Optional[str] = optional_str_field()
-    # maskdate: Optional[pd.Timestamp] = optional_datetime_field()
     notes: Optional[str] = optional_str_field()
     additional_parameters: Dict[str, str] = attrs.field(converter=lambda x: {str(k): str(v) for k, v in x.items()}, validator=attrs.validators.instance_of(dict))
 
     @classmethod
     def from_series(cls, series: pd.Series):
         # Use the series to create the entry by passing it directly to the constructor
-        # predefined_fields = [
-        #     "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
-        #     "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
-        #     "samplethickness", "mu", "sampos", "positionx", "positiony", "positionz", 
-        #     "blankpositiony", "blankpositionz", "protocol", "procpipeline", "maskdate", "notes",
-        # ]
         predefined_fields = [
             "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
             "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
@@ -83,16 +72,9 @@ class Logbook2MouseEntry:
             dbgnumber=series["dbgnumber"],
             matrixfraction=series["matrixfraction"],
             samplethickness=series["samplethickness"],
-            # mu=series["mu"],
             sampos=series["sampos"],
-            # positionx=series["positionx"],
-            # positiony=series["positiony"],
-            # positionz=series["positionz"],
-            # blankpositiony=series["blankpositiony"],
-            # blankpositionz=series["blankpositionz"],
             protocol=series["protocol"],
             procpipeline=series["procpipeline"],
-            # maskdate=series["maskdate"],
             notes=series["notes"],
             additional_parameters=additional_parameters
         )
@@ -104,13 +86,17 @@ class Logbook2MouseReader:
     entries: List[Logbook2MouseEntry] = attrs.field(init=False, factory=list) # entries
     projects: List[ProjectInfo] = attrs.field(init=False, factory=list) # their associated projects (most of which will be the same)
     samples: List[Sample] = attrs.field(init=False, factory=list) # their associated samples
+    positions: List[Dict[str, float]] = attrs.field(init=False, factory=list) # their associated positions
     _preloaded_projects: Dict[str, ProjectInfo] = attrs.field(init=False, factory=dict) # cache for preloaded projects. key is the project ID
+    _preloaded_positions: Dict[str, Dict[str, float]] = attrs.field(init=False, factory=dict) # cache for preloaded positions. key is the sampos
 
     def __attrs_post_init__(self):
         self.entries = self.get_entries()
-        self.gather_projects
+        self.gather_projects()
         self.projects = [self.get_project(entry.proposal) for entry in self.entries]
         self.samples = [self.get_sample(entry.proposal, entry.sampleid) for entry in self.entries]
+        self.gather_positions()
+        self.positions = [self.get_position(entry.sampos) for entry in self.entries]
         
     def read_logbook(self) -> pd.DataFrame:
         # Specify column types and converters for custom conversion if needed
@@ -127,16 +113,9 @@ class Logbook2MouseReader:
             "dbgnumber": "Int64",
             "matrixfraction": "float",
             "samplethickness": "float",
-            # "mu": "float",
             "sampos": "string",
-            # "positionx": "float",
-            # "positiony": "float",
-            # "positionz": "float",
-            # "blankpositiony": "float",
-            # "blankpositionz": "float",
             "protocol": "string",
             "procpipeline": "string",
-            # "maskdate": "datetime64[ns]",
             "notes": "string"
         }
 
@@ -169,11 +148,20 @@ class Logbook2MouseReader:
 
         return entries
 
+    def get_all_entries(self) -> List[Logbook2MouseEntry]:
+        # this gets all entries, regardless of whether they are to be converted to a script. Useful for data processing purposes.
+        df = self.read_logbook()
+        # entries = []
+        entries = [Logbook2MouseEntry.from_series(row) for _, row in df.iterrows()]
+        return entries
+
     def get_project(self, projectID) -> ProjectInfo:
         if projectID in self._preloaded_projects:
             return self._preloaded_projects[projectID]
         else:
-            project_file = self.project_base_path / f"{projectID}.xlsx"
+            print(f"Reading project {projectID}")
+            # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
+            project_file = self.project_base_path /f"{projectID[:4]}"/ f"{projectID}.xlsx"
             if project_file.is_file():
                 project = ProjectReader(file_path=project_file).project_info
                 self._preloaded_projects[projectID] = project
@@ -182,10 +170,16 @@ class Logbook2MouseReader:
                 raise FileNotFoundError(f"Project file {project_file} not found.")
 
     def gather_projects(self) -> List[ProjectInfo]:
-        projects = []
         for entry in self.entries:
             # just load them in the cache so we have them available
             _ = self.get_project(entry.proposal)
+
+    def gather_positions(self) -> Dict[str, Dict[str, float]]:
+        print("Gathering positions from the logbook file...")
+        self._preloaded_positions = SampleEnvironmentReader(file_path=self.file_path).read_sample_environment()
+
+    def get_position(self, sampos) -> Dict[str, float]:
+        return self._preloaded_positions[sampos]
 
     def get_sample(self, projectID, sampleID) -> Sample:
         project = self.get_project(projectID)

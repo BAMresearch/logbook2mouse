@@ -30,18 +30,6 @@ def compute_volume_fraction(mass_fraction: float, density: float) -> float:
     return mass_fraction / density if mass_fraction is not None else None
 
 
-@attrs.define
-class ProjectInfo:
-    name: str = attrs.field()
-    organisation: str = attrs.field()
-    email: str = attrs.field()
-    title: str = attrs.field()
-    description: str = attrs.field()
-    public_release: bool = attrs.field(converter=lambda x: x.lower() == "yes")
-    release_location: Optional[str] = attrs.field(default=None)
-    co_authorship: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
-    no_co_authorship_reason: Optional[str] = attrs.field(default=None)
-
 
 @attrs.define
 class SampleComponent:
@@ -100,7 +88,7 @@ class Sample:
     def generate_overall_formula(self):
         mix_components = []
         for c in self.components:
-            mix_components += [c] 
+            mix_components += [pt.formula(c.composition, density=c.density)]
             mix_components += [c.volume_fraction]
         self.formula = pt.mix_by_volume(*mix_components, natural_density=self.natural_density)
 
@@ -135,24 +123,38 @@ class Sample:
 
         return {"overall_mu": overall_mu}
 
+@attrs.define
+class ProjectInfo:
+    name: str = attrs.field()
+    organisation: str = attrs.field()
+    email: str = attrs.field()
+    title: str = attrs.field()
+    description: str = attrs.field()
+    samples: List[Sample] = attrs.field(factory=list, validator=attrs.validators.deep_iterable(member_validator=attrs.validators.instance_of(Sample)))
+    release_location: Optional[str] = attrs.field(default=None)
+    no_co_authorship_reason: Optional[str] = attrs.field(default=None)
+    co_authorship: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
+    public_release: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
 
 @attrs.define
 class ProjectReader:
     file_path: Path = attrs.field(validator=attrs.validators.instance_of(Path))
     project_info: ProjectInfo = attrs.field(init=False)
-    samples: List[Sample] = attrs.field(init=False)
+    # samples: List[Sample] = attrs.field(init=False)
 
     def __attrs_post_init__(self):
         self.project_info = self._read_project_info()
-        self.samples = self._read_samples()
 
     def _read_project_info(self) -> ProjectInfo:
         project_sheet = pd.read_excel(self.file_path, sheet_name=0, header=None, engine="openpyxl")
+        samples = self._read_samples()
+
         return ProjectInfo(
             name=project_sheet.iloc[1, 1],
             organisation=project_sheet.iloc[2, 1],
             email=project_sheet.iloc[3, 1],
             title=project_sheet.iloc[6, 1],
+            samples=samples,
             description=project_sheet.iloc[7, 1],
             public_release=project_sheet.iloc[8, 1],
             release_location=project_sheet.iloc[9, 1],
@@ -209,6 +211,6 @@ if __name__ == "__main__":
     print(reader.project_info)
 
     # Sample Information
-    for sample in reader.samples:
+    for sample in reader.project_info.samples:
         print(sample)
         print(sample.calculate_overall_properties(energy_keV=8.05))  # Copper K-alpha energy
