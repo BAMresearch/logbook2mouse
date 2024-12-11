@@ -102,7 +102,7 @@ class Logbook2MouseReader:
         self.positions = [self.get_position(entry.sampos) for entry in self.entries]
         self.update_entries_with_project_and_sample()
         self.update_entries_with_positions()
-        print(self.entries[3])
+        # print(self.entries[3])
         
     def update_entries_with_project_and_sample(self):
         for entry in self.entries:
