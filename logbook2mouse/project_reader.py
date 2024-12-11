@@ -7,10 +7,11 @@ import periodictable as pt
 import logging
 import xraydb
 
-from logbook2mouse.logbook_reader import optional_converter
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+def optional_converter(converter):
+    return lambda x: converter(x) if pd.notna(x) else None
 
 def validate_density(instance, attribute, value):
     if value <= 0:
