@@ -71,7 +71,7 @@ class Sample:
     sample_id: int = attrs.field(converter=flexible_int_converter, validator=attrs.validators.instance_of(int))
     sample_name: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str))
     composition: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str), default = "")
-    density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None, init=False)
+    density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None)
     natural_density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None) # if the overall density of the sample is known, it can be provided, perhaps later for use for more accutate mu calculation
     formula: Optional[pt.formula] = attrs.field(default=None, init=False) # will be generated when we know all the components. has amongst its attributes atoms (dict with atom and number), density (estimate from components) and xray_sld (imaginary part might be useful for absorption)
     components: List[SampleComponent] = attrs.field(factory=list)
@@ -80,8 +80,10 @@ class Sample:
         self.normalize_fractions()
         try:
             self.generate_overall_formula()
-            self.density=self.formula.density
-            self.composition=''.join([f"{k}{v}" for k, v in self.formula.atoms.items()])
+            if self.density is None:
+                self.density=self.formula.density
+            if self.composition is None:
+                self.composition=''.join([f"{k}{v}" for k, v in self.formula.atoms.items()])
         except Exception as e:
             logger.error(f"Error generating overall formula for sample {self.sample_id}: {e}")
 
