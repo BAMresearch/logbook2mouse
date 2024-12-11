@@ -22,6 +22,9 @@ def nan_to_none(value):
     """Convert NaN to None."""
     return None if value is None or (isinstance(value, float) and np.isnan(value)) else value
 
+def yesno_to_bool(value):
+    """Convert Yes/No answer to bool."""
+    return True if (isinstance(value, str) and value.lower() == "yes") or value else False
 
 def compute_mass_fraction(volume_fraction: float, density: float) -> float:
     """Compute mass fraction from volume fraction and density."""
@@ -138,8 +141,8 @@ class ProjectInfo:
     samples: Dict[int, Sample] = attrs.field(factory=dict, validator=attrs.validators.deep_mapping(key_validator=attrs.validators.instance_of(int), value_validator=attrs.validators.instance_of(Sample)))
     release_location: Optional[str] = attrs.field(default=None)
     no_co_authorship_reason: Optional[str] = attrs.field(default=None)
-    co_authorship: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
-    public_release: bool = attrs.field(default=False, converter=lambda x: x.lower() == "yes")
+    co_authorship: bool = attrs.field(default=False, converter=yesno_to_bool)
+    public_release: bool = attrs.field(default=False, converter=yesno_to_bool)
 
 @attrs.define
 class ProjectReader:
@@ -152,7 +155,7 @@ class ProjectReader:
     def _read_project_info(self) -> ProjectInfo:
         project_sheet = pd.read_excel(self.file_path, sheet_name=0, header=None, engine="openpyxl")
         samples = self._read_samples()
-
+        print(project_sheet.iloc[10,1])
         return ProjectInfo(
             name=project_sheet.iloc[1, 1],
             organisation=project_sheet.iloc[2, 1],
