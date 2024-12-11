@@ -32,10 +32,7 @@ class Logbook2MouseEntry:
     converttoscript: int = int_field()
     date: pd.Timestamp = datetime_field()
     proposal: str = str_field()
-    project: Optional[ProjectInfo] = attrs.field(init=False, default=None)
     sampos: str = str_field()
-    sample: Optional[Sample] = attrs.field(init=False, default=None)
-    sampleposition: Optional[Dict[str, float]] = attrs.field(init=False, default=None)
     sampleid: int = int_field()
     user: str = str_field()
     batchnum: int = int_field()
@@ -49,6 +46,9 @@ class Logbook2MouseEntry:
     procpipeline: Optional[str] = optional_str_field()
     notes: Optional[str] = optional_str_field()
     additional_parameters: Dict[str, str] = attrs.field(converter=lambda x: {str(k): str(v) for k, v in x.items()}, validator=attrs.validators.instance_of(dict))
+    project: Optional[ProjectInfo] = attrs.field(default=None)
+    sample: Optional[Sample] = attrs.field(default=None)
+    sampleposition: Optional[Dict[str, float]] = attrs.field(default=None)
 
     @classmethod
     def from_series(cls, series: pd.Series):
@@ -103,7 +103,7 @@ class Logbook2MouseReader:
         self.positions = [self.get_position(entry.sampos) for entry in self.entries]
         self.update_entries_with_project_and_sample()
         self.update_entries_with_positions()
-        print(generate_tree(self.entries[0], omit_keys=["samples"]))
+        # print(generate_tree(self.entries[0], omit_keys=["samples"]))
         # print(self.entries[3])
         
     def update_entries_with_project_and_sample(self):
