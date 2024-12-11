@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import attrs
 from typing import Dict, Generator, List, Optional, Union
-from project_reader import ProjectReader, Sample, ProjectInfo
+from .project_reader import ProjectReader, Sample, ProjectInfo
 
 # Convenience functions for date formatting
 def convert_date_to_string(date: pd.Timestamp) -> str:

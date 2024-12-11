@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 import logging
 from attrs import define, field, validators
-import DEigerClient
+from .deigerclient import DEigerClient
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.metadata as meta
 
@@ -24,10 +24,10 @@ class DEiger:
 
     nimages_per_file = 60
 
-    client: DEigerClient.DEigerClient = field(init=False)
+    client: DEigerClient = field(init=False)
 
     def __attrs_post_init__(self):
-        self.client = DEigerClient.DEigerClient(self.dcu_ip)
+        self.client = DEigerClient(self.dcu_ip)
 
     def empty_data_store(self):
         self.client.sendFileWriterCommand("clear")
@@ -126,11 +126,11 @@ def measurement(experiment, duration: int = 1, store_location: Path = Path("."))
 
     data = None
     for fname in last_available_data:
-        f = h5py.File(os.path.join(store_location, fname))
-        if data is None:
-            data = np.array(f["entry/data/data"])
-        else:
-            data += np.array(f["entry/data/data"])
+        with h5py.File(os.path.join(store_location, fname)) as f:
+            if data is None:
+                data = np.array(f["entry/data/data"])
+            else:
+                data += np.array(f["entry/data/data"])
         data_masked = np.where((data >= 0) & (data <= 1e9), data, 0)
 
     for fname in [*last_available_data, last_available_master]:
