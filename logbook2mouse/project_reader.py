@@ -7,6 +7,8 @@ import periodictable as pt
 import logging
 import xraydb
 
+from logbook2mouse.logbook_reader import optional_converter
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -70,10 +72,10 @@ def flexible_int_converter(value):
 class Sample:
     sample_id: int = attrs.field(converter=flexible_int_converter, validator=attrs.validators.instance_of(int))
     sample_name: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str))
-    composition: str = attrs.field(converter=str, validator=attrs.validators.instance_of(str), default = "")
+    composition: Optional[str] = attrs.field(converter=optional_converter(str), validator=attrs.validators.optional(attrs.validators.instance_of(str)), default = None)
     density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None)
     natural_density: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(validate_density), default=None) # if the overall density of the sample is known, it can be provided, perhaps later for use for more accutate mu calculation
-    formula: Optional[pt.formula] = attrs.field(default=None, init=False) # will be generated when we know all the components. has amongst its attributes atoms (dict with atom and number), density (estimate from components) and xray_sld (imaginary part might be useful for absorption)
+    formula: Optional[pt.formula] = attrs.field(default=None) # will be generated when we know all the components. has amongst its attributes atoms (dict with atom and number), density (estimate from components) and xray_sld (imaginary part might be useful for absorption)
     components: List[SampleComponent] = attrs.field(factory=list)
 
     def __attrs_post_init__(self):
