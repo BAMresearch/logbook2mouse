@@ -68,7 +68,8 @@ directory.
   python3.11 pressure_IOC.py --host 172.17.1.14 --port 4012 --prefix pressure_gauge: --list-pvs
   ```
 
-## Notes systemd
+## systemd
+### EPICS IMS motor IOC
 
 1. Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc/README.md
 
@@ -113,6 +114,70 @@ directory.
        Do you want to enable auto-start 'ioc_ims' at boot? Type 'yes' if you do. yes
        Created symlink /etc/systemd/system/multi-user.target.wants/softioc-ioc_ims.service → /etc/systemd/system/softioc-ioc_ims.service.
        auto-start the IOC 'ioc_ims' at boot has been enabled successfully
+
+7. Check the service status (or `start`, `stop`, `restart`) with standard `systemctl` tools:
+
+       systemctl status softioc-ioc_ims
+
+### Trinamic (python based IOCs)
+
+1. Create a start up script, so that the final command does not contain spaces:
+
+       cd /opt/epics/Trinamic_TMCL_IOC
+       cat << EOF > startup.sh
+           #!/bin/sh
+           scriptdir="\$(dirname "\$(readlink -f "\$0")")"
+           \$scriptdir/.pyenv/bin/python3 . --configfile motor_config_yzstage.yaml --list-pvs
+       EOF
+       chmod 755 startup.sh
+
+Set up the IOC config like this:
+
+       cat << EOF > config
+           NAME=$(basename "$(pwd)")
+           PORT=$(manage-iocs nextport)
+           HOST=$(hostname -s)
+           USER=$(id -un)
+           EXEC="\$CHDIR/startup.sh"
+       EOF
+
+4. Check the currently set up IOCs ('$' indicates the command, other lines are output):
+
+       $ manage-iocs report
+       BASE            | IOC             | USER            |  PORT | EXEC
+       /opt/epics      | Trinamic_TMCL_IOC | poduser         |  4054 | /opt/epics/Trinamic_TMCL_IOC/startup.sh
+
+5. Install the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs install Trinamic_TMCL_IOC
+       Installing IOC /opt/epics/Trinamic_TMCL_IOC ...
+       the unit file /etc/systemd/system/softioc-Trinamic_TMCL_IOC.service has been created
+       To start the IOC:
+       manage-iocs start Trinamic_TMCL_IOC
+
+6. Start the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs start Trinamic_TMCL_IOC
+       Starting the IOC 'Trinamic_TMCL_IOC' ...
+       The IOC 'Trinamic_TMCL_IOC' has been started successfully
+       Do you want to enable auto-start 'Trinamic_TMCL_IOC' at boot? Type 'yes' if you do. yes
+       Created symlink /etc/systemd/system/multi-user.target.wants/softioc-Trinamic_TMCL_IOC.service → /etc/systemd/system/softioc-Trinamic_TMCL_IOC.service.
+       auto-start the IOC 'Trinamic_TMCL_IOC' at boot has been enabled successfully
+
+7. Check the status with `systemctl`:
+
+       $ systemctl status softioc-Trinamic_TMCL_IOC
+       ● softioc-Trinamic_TMCL_IOC.service - IOC Trinamic_TMCL_IOC via procServ
+       Loaded: loaded (/etc/systemd/system/softioc-Trinamic_TMCL_IOC.service; enabled; preset: enabled)
+       Active: active (running) since Wed 2024-12-11 14:11:07 UTC; 28s ago
+       Main PID: 1693 (procServ)
+       Tasks: 34 (limit: 307)
+       Memory: 43.1M (peak: 47.2M)
+       CPU: 2.506s
+       CGroup: /system.slice/softioc-Trinamic_TMCL_IOC.service
+       ├─1693 /usr/bin/procServ -f -q -c /opt/epics/Trinamic_TMCL_IOC -i ^D^C^] -p /var/run/softioc-Trinamic_TMCL_IOC.pid -n Trinamic_TMCL_IOC --restrict -L /v>
+       ├─1695 /bin/sh /opt/epics/Trinamic_TMCL_IOC/startup.sh
+       └─1698 /opt/epics/Trinamic_TMCL_IOC/.pyenv/bin/python3 . --configfile motor_config_yzstage.yaml --list-pvs
 
 ### Beyond systemd
 
