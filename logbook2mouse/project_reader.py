@@ -38,8 +38,8 @@ class SampleComponent:
     density: float = attrs.field(validator=validate_density, default=1.0) # negative density to force user to provide it
     volume_fraction: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(attrs.validators.instance_of(float)), default=None)
     mass_fraction: Optional[float] = attrs.field(converter=nan_to_none, validator=attrs.validators.optional(attrs.validators.instance_of(float)), default=None)
-    connection: Optional[str] = attrs.field(default=None)
-    connected_to: Optional[str] = attrs.field(default=None)
+    connection: Optional[str] = attrs.field(converter=nan_to_none, default=None)
+    connected_to: Optional[str] = attrs.field(converter=nan_to_none, default=None)
     name: str = attrs.field(default="")
 
     def __attrs_post_init__(self):
