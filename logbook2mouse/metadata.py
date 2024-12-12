@@ -53,8 +53,8 @@ def meta_file_structure(h5file):
     for item in ["name", "owner", "sampleid", "sampos"]:
         nxsam.create_dataset(item, data="", dtype=h5py.string_dtype())
     for item in ["matrixfraction", "samplethickness", "total_mu"]:
-        nxsam.create_dataset(item, data="", dtype=h5py.float_dtype())
-
+        nxsam.create_dataset(item, data=0.0, dtype=h5py.float_dtype())
+    nxsam.create_dataset("sampleid", data=0, dtype=h5py.int_dtype())
     # saxslab
 
     nxsaxs = h5file.create_group('saxs')
