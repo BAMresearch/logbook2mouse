@@ -89,10 +89,11 @@ def moveto_config(
 
 def robust_caput(pv, value, timeout=5):
     epics.caput(pv, value, timeout=timeout)
-    new_position = epics.caget(pv + ".DMOV")
+    dmov_addr = pv + ".DMOV"
+    new_position = epics.caget(dmov_addr)
     while new_position != 1:
         time.sleep(0.2)
-        new_position = epics.caget(pv)
+        new_position = epics.caget(dmov_addr)
 
 
 def measure_profile(
