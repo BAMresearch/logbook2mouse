@@ -105,7 +105,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         dataset = f["/entry1/experiment/experiment_identifier"]
         dataset[...] = proposal
 
-        for item in ["operator", "logbook_date", "batchnum",
+        for item in ["user", "logbook_date", "batchnum",
                      "protocol", "procpipeline", "additional_parameters"]:
             data = epics.caget(f"{parrot_prefix}:exp:{item}")
             dataset = f[f"/entry1/experiment/{item}"]
