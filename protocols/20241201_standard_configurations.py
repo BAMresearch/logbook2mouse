@@ -36,7 +36,6 @@ print(f"Starting measurement for sample {entry.sampleid} with temperature set to
 
 measure_at_config(config_no = configuration,
                   entry = entry,
-                  required_pvs = required_pvs,
-                  dEiger_connection = eiger,
+                  experiment = experiment,
                   duration=60,  # default: 600
                   )
