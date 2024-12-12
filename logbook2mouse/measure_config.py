@@ -8,12 +8,13 @@ import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
 import logbook2mouse.metadata as meta
 from logbook2mouse.experiment import get_address
+from logbook2mouse.logbook_reader import Logbook2MouseEntry
 
 def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
 ):
     """Move the motor to the requested value and set parrot PVs."""
-    epics.caput(f"{prefix}:{motorname}", position, wait=True)
+    robust_caput(f"{prefix}:{motorname}", position)
     # figure out which parrot variable to use
     if motorname.startswith("s") and motorname != "shutter":
         slitnumber = motorname[1]
@@ -33,6 +34,24 @@ def move_motor(
     epics.caput(parrot_pv, actual_value)
     return actual_value
 
+def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = False):
+    """Move the motors according to the sample position entries."""
+    for motor in entry.sampleposition.keys():
+        addr = None  # some like xsam don't exist
+        if "blank" in motor:
+            motorname = motor.rstrip(".blank")
+        else:
+            motorname = motor
+        addr = get_address(experiment, motorname)
+        if addr is not None:  # xsam can't be moved
+            if blank:
+                if "blank" in motor:
+                    move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+            else:
+                if "blank" not in motor:
+                    move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+
+
 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
@@ -47,6 +66,7 @@ def moveto_config(
     config_path: Path = Path("/home/ws8665-epics/data/configurations"),
     config_no: int = 110,
 ):
+    config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     configfile = config_path / f"{config_no}.nxs"
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
@@ -67,10 +87,11 @@ def moveto_config(
 
 def robust_caput(pv, value, timeout=5):
     epics.caput(pv, value, timeout=timeout)
-    new_position = epics.caget(pv)
-    while new_position != value:
+    dmov_addr = pv + ".DMOV"
+    new_position = epics.caget(dmov_addr)
+    while new_position != 1:
         time.sleep(0.2)
-        new_position = epics.caget(pv)
+        new_position = epics.caget(dmov_addr)
 
 
 def measure_profile(
@@ -85,23 +106,24 @@ def measure_profile(
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         # to do: determine motors from pvs, or logbook
-        move_motor("ysam", entry.blankpositiony, prefix="mc0")
-        move_motor("zsam", entry.blankpositionz, prefix="mc0")
+        move_to_sampleposition(experiment, entry, blank = True)
         beamprofilepath = store_location / "beam_profile"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
     else:
-        move_motor("ysam", entry.positiony, prefix="mc0")
-        move_motor("zsam", entry.positionz, prefix="mc0")
+        move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
-    robust_caput("source_cu:shutter", 1, timeout=5)
+    epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
+
+    epics.caput("source_cu:shutter", 0, wait=True)
+
     # communicate to image processing ioc which expects the _data_*h5 files
     for fname in beamprofilepath.glob("*data*.h5"):
         if beamprofilepath.stem == "beam_profile":
@@ -109,8 +131,6 @@ def measure_profile(
         else:
             pv = "ImagePathSecondary"
         epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
-
-    robust_caput("source_cu:shutter", 0, timeout=5)
 
 
 def measure_dataset(
@@ -122,17 +142,16 @@ def measure_dataset(
     move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
     for mode in ["blank", "sample"]:
         measure_profile(
-            entry, store_location, experiment, mode=mode, duration=20
+            entry, store_location, experiment, mode=mode, duration=2
         )
-    move_motor("ysam", entry.positiony, prefix="mc0")
-    move_motor("zsam", entry.positionz, prefix="mc0")
+    move_to_sampleposition(experiment, entry)
     move_motor("bsr", bsr, prefix="ims")
-    robust_caput("source_cu:shutter", 1, timeout=5)
+    epics.caput("source_cu:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     detector.measurement(
         experiment, duration=duration, store_location=store_location
     )
-    robust_caput("source_cu:shutter", 0, timeout=5)
+    epics.caput("source_cu:shutter", 0, wait=True)
 
 def measure_at_config(
     config_no: int,
@@ -143,6 +162,7 @@ def measure_at_config(
 ):
     """Measure with the default settings for each configuration."""
 
+    config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     config_dict = moveto_config(
         experiment.required_pvs,
         config_path=Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),

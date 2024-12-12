@@ -40,6 +40,7 @@ def parse_args():
     # Required arguments
     parser.add_argument("logbook_file", type=Path, help="Path to the logbook Excel file")
     parser.add_argument("protocols_directory", type=Path, help="Path to the directory containing protocol files")
+    parser.add_argument("project_base_path", type=Path, help="Path to the base project directory (i.e. from where you have the project sheets organized by [year]/[proposalid].xlsx)")
     parser.add_argument("output_script_file", type=Path, help="Path to save the generated measurement script to")
 
     # Optional arguments
@@ -86,6 +87,10 @@ if __name__ == "__main__":
     protocols_directory = Path(args.protocols_directory)
     assert protocols_directory.is_dir(), f"Protocols directory not found: {protocols_directory}"
 
+    # check if the project base path exists
+    project_base_path = Path(args.project_base_path)
+    assert project_base_path.is_dir(), f"Project base path not found: {project_base_path}"
+
     # create output script directory if it does not exist
     output_script_path = Path(args.output_script_file)
     output_script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -104,7 +109,7 @@ if __name__ == "__main__":
 
     # Example usage
     try:
-        reader = Logbook2MouseReader(logbook_path)
+        reader = Logbook2MouseReader(logbook_path, project_base_path=project_base_path)
         script = MeasurementScript(
             entries=reader.entries,
             protocols_directory=protocols_directory,

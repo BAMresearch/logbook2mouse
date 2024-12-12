@@ -4,10 +4,18 @@ import numpy as np
 import caproto.threading.pyepics_compat as epics
 
 def logbook2parrot(entry, parrot_prefix: str = "pa0"):
-    for item in ["proposal", "sampleid", "sampos"]:
+    for item in ["proposal", "sampleid", "sampos", "matrixfraction", "samplethickness"]:
         value = getattr(entry, item)
         epics.caput(f"{parrot_prefix}:sample:{item}", value)
-    epics.caput(f"{parrot_prefix}:exp:operator", entry.user)
+    mu_sample = entry.sample.calculate_overall_properties(energy_keV = 8.050)["overall_mu"]
+    epics.caput(f"{parrot_prefix}:sample:overall_mu", mu_sample)
+    for item in ["batchnum", "user", "protocol", "procpipeline"]:
+        value = getattr(entry, item)
+        epics.caput(f"{parrot_prefix}:exp:{item}", value)
+    epics.caput(f"{parrot_prefix}:exp:additional_parameters",
+                entry.additional_parameters.__repr__().encode("utf-8"))
+    epics.caput(f"{parrot_prefix}:sample:samplename", entry.sample.sample_name)
+    epics.caput(f"{parrot_prefix}:sample:owner", entry.project.name)
 
 def environment2parrot(experiment):
     if "pressure_gauge:pressure" in experiment.required_pvs:
@@ -22,8 +30,10 @@ def meta_file_structure(h5file):
     nxentry.attrs['default'] = 'instrument'
 
     expgroup = nxentry.create_group('experiment')
-    for item in ["experiment_identifier", "operator", "logbook_date"]:
+    for item in ["experiment_identifier", "user", "logbook_date",
+                 "protocol", "procpipeline", "additional_parameters"]:
         expgroup.create_dataset(item, data="")
+    expgroup.create_dataset("batchnum", 0)
 
     nxinst = nxentry.create_group('instrument')
     nxinst.attrs['NX_class'] = 'NXinstrument'
@@ -40,9 +50,11 @@ def meta_file_structure(h5file):
     nxsam.attrs['default'] = 'name'
 
     # initialize empty
-    for item in ["name", "owner", "sampleid", "sampos"]:
+    for item in ["name", "owner", "sampos"]:
         nxsam.create_dataset(item, data="", dtype=h5py.string_dtype())
-
+    for item in ["matrixfraction", "samplethickness", "overall_mu"]:
+        nxsam.create_dataset(item, data=0.0, dtype=float)
+    nxsam.create_dataset("sampleid", data=0, dtype=int)
     # saxslab
 
     nxsaxs = h5file.create_group('saxs')
@@ -93,10 +105,17 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         dataset = f["/entry1/experiment/experiment_identifier"]
         dataset[...] = proposal
 
-        for item in ["operator", "logbook_date"]:
+        for item in ["user", "logbook_date", "batchnum",
+                     "protocol", "procpipeline"]:
             data = epics.caget(f"{parrot_prefix}:exp:{item}")
             dataset = f[f"/entry1/experiment/{item}"]
             dataset[...] = data
+
+        value = epics.caget(f"{parrot_prefix}:exp:additional_parameters")
+        #value = value.tobytes().encode('ASCII')
+        value = value.tobytes().decode('utf-8')
+        dataset = f[f"/entry1/experiment/additional_parameters"]
+        dataset[...] = value.__repr__()
 
         configuration = epics.caget(f"{parrot_prefix}:config:config_id")
         dataset = f["/entry1/instrument/configuration"]
@@ -106,7 +125,8 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         dataset = f["/entry1/instrument/detector00/count_time"]
         dataset[...] = count_time
 
-        for item in ["owner", "sampleid", "sampos"]:
+        for item in ["owner", "sampleid", "sampos",
+                     "matrixfraction", "samplethickness", "overall_mu"]:
             value = epics.caget(f"{parrot_prefix}:sample:{item}")
             dataset = f[f"/entry1/sample/{item}"]
             dataset[...] = value
