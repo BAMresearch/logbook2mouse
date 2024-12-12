@@ -61,7 +61,6 @@ class SampleComponent:
         material = pt.formula(self.composition)
         sld, mu = pt.xray_sld(material, energy=energy_keV, density=self.density)
         # for now since I can't seem to figure it out, let's use xraydb for mu calculation:
-        print(self.composition)
         mu=xraydb.material_mu(self.composition, energy=energy_keV*1000, density=self.density)*100 # 1/m 
         # mu = material.mass * self.density * sld.imag  # Absorption coefficient approximation
         return {"mu": mu, "sld": sld}
