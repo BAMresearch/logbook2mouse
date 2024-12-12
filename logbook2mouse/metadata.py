@@ -15,8 +15,8 @@ def logbook2parrot(entry, parrot_prefix: str = "pa0"):
         epics.caput(f"{parrot_prefix}:exp:{item}", value)
     epics.caput(f"{parrot_prefix}:exp:additional_parameters",
                 entry.additional_parameters.__repr__().encode("utf-8"))
-    epics.caput(f"{experiment.parrot_prefix}:sample:samplename", entry.sample.sample_name)
-    epics.caput(f"{experiment.parrot_prefix}:sample:owner", entry.project.name)
+    epics.caput(f"{parrot_prefix}:sample:samplename", entry.sample.sample_name)
+    epics.caput(f"{parrot_prefix}:sample:owner", entry.project.name)
 
 def environment2parrot(experiment):
     if "pressure_gauge:pressure" in experiment.required_pvs:
