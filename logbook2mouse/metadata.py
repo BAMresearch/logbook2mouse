@@ -31,7 +31,7 @@ def meta_file_structure(h5file):
     nxentry.attrs['default'] = 'instrument'
 
     expgroup = nxentry.create_group('experiment')
-    for item in ["experiment_identifier", "operator", "logbook_date",
+    for item in ["experiment_identifier", "user", "logbook_date",
                  "protocol", "procpipeline", "batchnum", "additional_parameters"]:
         expgroup.create_dataset(item, data="")
 
