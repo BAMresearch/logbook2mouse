@@ -130,7 +130,7 @@ def measure_dataset(
     move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
     for mode in ["blank", "sample"]:
         measure_profile(
-            entry, store_location, experiment, mode=mode, duration=20
+            entry, store_location, experiment, mode=mode, duration=2
         )
     move_to_sampleposition(experiment, entry)
     move_motor("bsr", bsr, prefix="ims")
