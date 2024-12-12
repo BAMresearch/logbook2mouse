@@ -6,6 +6,7 @@ import caproto.threading.pyepics_compat as epics
 def logbook2parrot(entry, parrot_prefix: str = "pa0"):
     for item in ["proposal", "sampleid", "sampos", "matrixfraction", "samplethickness"]:
         value = getattr(entry, item)
+        print(item, value, type(value))
         epics.caput(f"{parrot_prefix}:sample:{item}", value)
     mu_sample = entry.sample.calculate_overall_properties(energy_keV = 8050)["overall_mu"]
     epics.caput(f"{parrot_prefix}:sample:total_mu", mu_sample)
