@@ -44,14 +44,14 @@ def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
 
 def moveto_config(
     required_pvs,
-    config_path: Path = Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
+    config_path: Path = Path("/home/ws8665-epics/data/configurations"),
     config_no: int = 110,
 ):
     configfile = config_path / f"{config_no}.nxs"
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
-    pvs_not_to_move = ["shutter", "pressure", "pa0"]
+    pvs_not_to_move = ["shutter", "pressure", "pa0", "image"]
     for pv in required_pvs:
         if not any(substr in pv for substr in pvs_not_to_move):
             prefix, motorname = pv.split(":")
@@ -102,6 +102,14 @@ def measure_profile(
         duration=duration,
         store_location=beamprofilepath,
     )
+    # communicate to image processing ioc which expects the _data_*h5 files
+    for fname in beamprofilepath.glob("*data*.h5"):
+        if beamprofilepath.stem == "beam_profile":
+            pv = "ImagePathPrimary"
+        else:
+            pv = "ImagePathSecondary"
+        epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
+
     robust_caput("source_cu:shutter", 0, timeout=5)
 
 
