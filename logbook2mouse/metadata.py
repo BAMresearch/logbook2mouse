@@ -10,7 +10,7 @@ def logbook2parrot(entry, parrot_prefix: str = "pa0"):
     print(entry.sample)
     mu_sample = entry.sample.calculate_overall_properties(energy_keV = 8.050)["overall_mu"]
     epics.caput(f"{parrot_prefix}:sample:overall_mu", mu_sample)
-    for item in ["batchnum", "operator", "protocol", "procpipeline"]:
+    for item in ["batchnum", "user", "protocol", "procpipeline"]:
         value = getattr(entry, item)
         epics.caput(f"{parrot_prefix}:exp:{item}", value)
     epics.caput(f"{parrot_prefix}:exp:additional_parameters",
