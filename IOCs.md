@@ -68,9 +68,185 @@ directory.
   python3.11 pressure_IOC.py --host 172.17.1.14 --port 4012 --prefix pressure_gauge: --list-pvs
   ```
 
-## Notes systemd
+## systemd
+### EPICS IMS motor IOC
 
-**Update:** Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc
+1. Regarding systemd for running IOCs this will be the way: https://github.com/NSLS-II/systemd-softioc/README.md
+
+2. Make sure the directory for the IOCs exists and is configured:
+
+       sudo mkdir -p /opt/epics
+       cd /opt/epics
+       sudo sed -i -e "/^IOCPATH/{ s/^\(IOCPATH=\)/#\1/;aIOCPATH=$(pwd)" -e "}" /usr/local/systemd-softioc/epics-softioc.conf
+
+3. Create a start up script, so that the final command does not contain spaces:
+
+       mkdir -p /opt/epics/ims
+       cd /opt/epics/ims
+       cat << EOF > startup.sh
+           #!/bin/sh
+           scriptdir="\$(dirname "\$(readlink -f "\$0")")"
+           cd "\$scriptdir/../spec2epics"
+           ./convert.py echomode -a cfg/addressesAliases.md 4001 2
+           ./convert.py echomode -a cfg/addressesAliases.md 4002 2
+           ./convert.py echomode -a cfg/addressesAliases.md 4003 2
+           ./convert.py echomode -a cfg/addressesAliases.md 4005 2
+           ./generated/moxa01020305.cmd
+       EOF
+       chmod 755 startup.sh
+
+4. Set up the IOC config like this:
+
+       cat << EOF > config
+           NAME=$(basename "$(pwd)")
+           PORT=$(manage-iocs nextport)
+           HOST=$(hostname -s)
+           USER=$(id -un)
+           EXEC="\$CHDIR/startup.sh"
+       EOF
+
+5. Check the currently set up IOCs ('$' indicates the command, other lines are output):
+
+       $ manage-iocs report
+       BASE            | IOC             | USER            |  PORT | EXEC
+       /opt/epics      | ioc_ims         | poduser         |  4050 | /opt/epics/ioc_ims/../spec2epics/generated/moxa05.cmd
+
+6. Install the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs install ioc_ims
+       Installing IOC /opt/epics/ioc_ims ...
+       the unit file /etc/systemd/system/softioc-ioc_ims.service has been created
+       To start the IOC:
+       manage-iocs start ioc_ims
+
+7. Start the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs start ioc_ims
+       Starting the IOC 'ioc_ims' ...
+       The IOC 'ioc_ims' has been started successfully
+       Do you want to enable auto-start 'ioc_ims' at boot? Type 'yes' if you do. yes
+       Created symlink /etc/systemd/system/multi-user.target.wants/softioc-ioc_ims.service → /etc/systemd/system/softioc-ioc_ims.service.
+       auto-start the IOC 'ioc_ims' at boot has been enabled successfully
+
+8. Check the service status (or `start`, `stop`, `restart`) with standard `systemctl` tools:
+
+       systemctl status softioc-ioc_ims
+
+### Trinamic (python based IOCs)
+
+1. Create a start up script, so that the final command does not contain spaces:
+
+       cd /opt/epics/Trinamic_TMCL_IOC
+       cat << EOF > startup.sh
+           #!/bin/sh
+           scriptdir="\$(dirname "\$(readlink -f "\$0")")"
+           \$scriptdir/.pyenv/bin/python3 . --configfile motor_config_yzstage.yaml --list-pvs
+       EOF
+       chmod 755 startup.sh
+
+2. Set up the IOC config like this:
+
+       cat << EOF > config
+           NAME=$(basename "$(pwd)")
+           PORT=$(manage-iocs nextport)
+           HOST=$(hostname -s)
+           USER=$(id -un)
+           EXEC="\$CHDIR/startup.sh"
+       EOF
+
+3. Check the currently set up IOCs ('$' indicates the command, other lines are output):
+
+       $ manage-iocs report
+       BASE            | IOC             | USER            |  PORT | EXEC
+       /opt/epics      | Trinamic_TMCL_IOC | poduser         |  4054 | /opt/epics/Trinamic_TMCL_IOC/startup.sh
+
+4. Install the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs install Trinamic_TMCL_IOC
+       Installing IOC /opt/epics/Trinamic_TMCL_IOC ...
+       the unit file /etc/systemd/system/softioc-Trinamic_TMCL_IOC.service has been created
+       To start the IOC:
+       manage-iocs start Trinamic_TMCL_IOC
+
+5. Start the IOC ('$' indicates the command, other lines are output):
+
+       $ sudo manage-iocs start Trinamic_TMCL_IOC
+       Starting the IOC 'Trinamic_TMCL_IOC' ...
+       The IOC 'Trinamic_TMCL_IOC' has been started successfully
+       Do you want to enable auto-start 'Trinamic_TMCL_IOC' at boot? Type 'yes' if you do. yes
+       Created symlink /etc/systemd/system/multi-user.target.wants/softioc-Trinamic_TMCL_IOC.service → /etc/systemd/system/softioc-Trinamic_TMCL_IOC.service.
+       auto-start the IOC 'Trinamic_TMCL_IOC' at boot has been enabled successfully
+
+6. Check the status with `systemctl`:
+
+       $ systemctl status softioc-Trinamic_TMCL_IOC
+       ● softioc-Trinamic_TMCL_IOC.service - IOC Trinamic_TMCL_IOC via procServ
+       Loaded: loaded (/etc/systemd/system/softioc-Trinamic_TMCL_IOC.service; enabled; preset: enabled)
+       Active: active (running) since Wed 2024-12-11 14:11:07 UTC; 28s ago
+       Main PID: 1693 (procServ)
+       Tasks: 34 (limit: 307)
+       Memory: 43.1M (peak: 47.2M)
+       CPU: 2.506s
+       CGroup: /system.slice/softioc-Trinamic_TMCL_IOC.service
+       ├─1693 /usr/bin/procServ -f -q -c /opt/epics/Trinamic_TMCL_IOC -i ^D^C^] -p /var/run/softioc-Trinamic_TMCL_IOC.pid -n Trinamic_TMCL_IOC --restrict -L /v>
+       ├─1695 /bin/sh /opt/epics/Trinamic_TMCL_IOC/startup.sh
+       └─1698 /opt/epics/Trinamic_TMCL_IOC/.pyenv/bin/python3 . --configfile motor_config_yzstage.yaml --list-pvs
+
+### Use `systemctl` to query IOCs
+
+    $ systemctl list-units 'softioc-*'
+    UNIT                              LOAD   ACTIVE SUB     DESCRIPTION
+    softioc-ims.service               loaded active running IOC ims via procServ
+    softioc-ioc_ims.service           loaded active running IOC ioc_ims via procServ
+    softioc-Trinamic_TMCL_IOC.service loaded active running IOC Trinamic_TMCL_IOC via procServ
+    
+    Legend: LOAD   → Reflects whether the unit definition was properly loaded.
+    ACTIVE → The high-level unit activation state, i.e. generalization of SUB.
+    SUB    → The low-level unit activation state, values depend on unit type.
+    
+    3 loaded units listed. Pass --all to see loaded but inactive units, too.
+    To show all installed unit files use 'systemctl list-unit-files'.
+
+More details status:
+    
+    $ systemctl status 'softioc-*'
+    ● softioc-Trinamic_TMCL_IOC.service - IOC Trinamic_TMCL_IOC via procServ
+    Loaded: loaded (/etc/systemd/system/softioc-Trinamic_TMCL_IOC.service; enabled; preset: enabled)
+    Active: active (running) since Wed 2024-12-11 14:11:07 UTC; 13min ago
+    Main PID: 1693 (procServ)
+    Tasks: 34 (limit: 307)
+    Memory: 47.1M (peak: 50.7M)
+    CPU: 15.257s
+    CGroup: /system.slice/softioc-Trinamic_TMCL_IOC.service
+    ├─1693 /usr/bin/procServ -f -q -c /opt/epics/Trinamic_TMCL_IOC -i ^D^C^] -p /var/run/softioc-Trinamic_TMCL_IOC.pid -n Trinamic_TMCL_IOC --restrict -L /v>
+    ├─2221 /bin/sh /opt/epics/Trinamic_TMCL_IOC/startup.sh
+    └─2224 /opt/epics/Trinamic_TMCL_IOC/.pyenv/bin/python3 . --configfile motor_config_yzstage.yaml --list-pvs
+    
+    ● softioc-ims.service - IOC ims via procServ
+    Loaded: loaded (/etc/systemd/system/softioc-ims.service; enabled; preset: enabled)
+    Active: active (running) since Wed 2024-12-11 14:19:52 UTC; 4min 42s ago
+    Main PID: 2121 (procServ)
+    Tasks: 13 (limit: 307)
+    Memory: 2.4M (peak: 3.6M)
+    CPU: 462ms
+    CGroup: /system.slice/softioc-ims.service
+    ├─2121 /usr/bin/procServ -f -q -c /opt/epics/ims -i ^D^C^] -p /var/run/softioc-ims.pid -n ims --restrict -L /var/log/softioc/ims/ims.log 4055 /opt/epics>
+    ├─2123 /bin/sh /opt/epics/ims/startup.sh
+    └─2126 /opt/epics/synapps/support/motor-R7-3-1/modules/motorIms/iocs/imsIOC/bin/linux-x86_64/ims ./generated/moxa05.cmd
+    
+    ● softioc-ioc_ims.service - IOC ioc_ims via procServ
+    Loaded: loaded (/etc/systemd/system/softioc-ioc_ims.service; enabled; preset: enabled)
+    Active: active (running) since Wed 2024-12-11 13:18:16 UTC; 1h 6min ago
+    Main PID: 1223 (procServ)
+    Tasks: 12 (limit: 307)
+    Memory: 2.4M (peak: 3.0M)
+    CPU: 11.079s
+    CGroup: /system.slice/softioc-ioc_ims.service
+    ├─1223 /usr/bin/procServ -f -q -c /opt/epics/ioc_ims/../spec2epics -i ^D^C^] -p /var/run/softioc-ioc_ims.pid -n ioc_ims --restrict -L /var/log/softioc/i>
+    └─1225 /opt/epics/synapps/support/motor-R7-3-1/modules/motorIms/iocs/imsIOC/bin/linux-x86_64/ims /opt/epics/ioc_ims/../spec2epics/generated/moxa05.cmd
+
+### Beyond systemd
+
 Another insightfull discussion on tech-talk about configuring process limits and various settings independent of systemd: https://epics.anl.gov/tech-talk/2020/msg00537.php
 
 ### Place to put them
