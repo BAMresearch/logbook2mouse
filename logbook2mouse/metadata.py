@@ -116,7 +116,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         #value = value.tobytes().encode('ASCII')
         value = value.tobytes().decode('utf-8')
         dataset = f[f"/entry1/experiment/additional_parameters"]
-        dataset[...] = value
+        dataset[...] = value.__repr__()
 
         configuration = epics.caget(f"{parrot_prefix}:config:config_id")
         dataset = f["/entry1/instrument/configuration"]
