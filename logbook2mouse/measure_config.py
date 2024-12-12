@@ -14,7 +14,7 @@ def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
 ):
     """Move the motor to the requested value and set parrot PVs."""
-    epics.caput(f"{prefix}:{motorname}", position, wait=True)
+    robust_caput(f"{prefix}:{motorname}", position)
     # figure out which parrot variable to use
     if motorname.startswith("s") and motorname != "shutter":
         slitnumber = motorname[1]
@@ -89,7 +89,7 @@ def moveto_config(
 
 def robust_caput(pv, value, timeout=5):
     epics.caput(pv, value, timeout=timeout)
-    new_position = epics.caget(pv)
+    new_position = epics.caget(pv + ".RBV")
     while new_position != value:
         time.sleep(0.2)
         new_position = epics.caget(pv)
@@ -116,13 +116,13 @@ def measure_profile(
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
-    robust_caput("source_cu:shutter", 1, timeout=5)
+    epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
-    robust_caput("source_cu:shutter", 0, timeout=5)
+    epics.caput("source_cu:shutter", 0, wait=True)
 
 
 def measure_dataset(
@@ -138,12 +138,12 @@ def measure_dataset(
         )
     move_to_sampleposition(experiment, entry)
     move_motor("bsr", bsr, prefix="ims")
-    robust_caput("source_cu:shutter", 1, timeout=5)
+    epics.caput("source_cu:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     detector.measurement(
         experiment, duration=duration, store_location=store_location
     )
-    robust_caput("source_cu:shutter", 0, timeout=5)
+    epics.caput("source_cu:shutter", 0, wait=True)
 
 def measure_at_config(
     config_no: int,
