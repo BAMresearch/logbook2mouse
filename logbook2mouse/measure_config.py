@@ -36,7 +36,9 @@ def move_motor(
 
 def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = False):
     """Move the motors according to the sample position entries."""
+    print(entry.sampleposition)
     for motor in entry.sampleposition.keys():
+        print(motor)
         addr = None  # some like xsam don't exist
         if "blank" in motor:
             motorname = motor.rstrip(".blank")
@@ -110,7 +112,7 @@ def measure_profile(
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
     else:
-        move_to_sampleposition(experiment, entry, blank = False)
+        move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
