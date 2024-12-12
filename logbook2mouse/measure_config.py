@@ -108,7 +108,7 @@ def measure_profile(
             pv = "ImagePathPrimary"
         else:
             pv = "ImagePathSecondary"
-        epics.caput(f"{experiment.image_processing_prefix}:{pv}", fname.encode('utf-8'))
+        epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
 
     robust_caput("source_cu:shutter", 0, timeout=5)
 
