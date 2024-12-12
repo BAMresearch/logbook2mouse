@@ -156,7 +156,6 @@ class ProjectReader:
     def _read_project_info(self) -> ProjectInfo:
         project_sheet = pd.read_excel(self.file_path, sheet_name=0, header=None, engine="openpyxl")
         samples = self._read_samples()
-        print(project_sheet.iloc[10,1])
         return ProjectInfo(
             name=project_sheet.iloc[1, 1],
             organisation=project_sheet.iloc[2, 1],

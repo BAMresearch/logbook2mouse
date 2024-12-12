@@ -36,9 +36,7 @@ def move_motor(
 
 def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = False):
     """Move the motors according to the sample position entries."""
-    print(entry.sampleposition)
     for motor in entry.sampleposition.keys():
-        print(motor)
         addr = None  # some like xsam don't exist
         if "blank" in motor:
             motorname = motor.rstrip(".blank")
