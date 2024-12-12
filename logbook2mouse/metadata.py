@@ -50,7 +50,7 @@ def meta_file_structure(h5file):
     nxsam.attrs['default'] = 'name'
 
     # initialize empty
-    for item in ["name", "owner", "sampleid", "sampos"]:
+    for item in ["name", "owner", "sampos"]:
         nxsam.create_dataset(item, data="", dtype=h5py.string_dtype())
     for item in ["matrixfraction", "samplethickness", "total_mu"]:
         nxsam.create_dataset(item, data=0.0, dtype=float)
