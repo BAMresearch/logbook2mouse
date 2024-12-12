@@ -47,13 +47,7 @@ class DEiger:
 
 
 def send_detector_command(DEiger, command, **kwargs):
-    if command == "trigger":
-        if "duration" in kwargs.keys():
-            response = DEiger.sendDetectorCommand(command, timeout=kwargs["timeout"])
-        else:
-            response = DEiger.sendDetectorCommand(command)
-    else:
-        response = DEiger.sendDetectorCommand(command)
+    response = DEiger.sendDetectorCommand(command)
     success = len(response.keys())
     if success:
         return 0
@@ -62,7 +56,7 @@ def send_detector_command(DEiger, command, **kwargs):
 def exposition(DEiger, duration=1):
     print("Arming detector..." + " "*30, end="\r", flush=True)
     send_detector_command(DEiger, "arm")
-    send_detector_command(DEiger, "trigger", timeout=duration)
+    send_detector_command(DEiger, "trigger")
     for i in range(duration,0,-1):
         print(f"\r{i} seconds remaining for the current exposure  ",
               end='\r', flush=True)
