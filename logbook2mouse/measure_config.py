@@ -150,6 +150,7 @@ def measure_at_config(
 ):
     """Measure with the default settings for each configuration."""
 
+    config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     config_dict = moveto_config(
         experiment.required_pvs,
         config_path=Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
