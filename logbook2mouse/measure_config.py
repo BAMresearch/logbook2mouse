@@ -64,7 +64,7 @@ def moveto_config(
     config_path: Path = Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
     config_no: int = 110,
 ):
-    configfile = config_path / f"{config_no}.nxs"
+    configfile = config_path / f"{int(config_no)}.nxs"
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
