@@ -15,8 +15,8 @@ if "configuration" in entry.additional_parameters.keys():
 # else:  # specify configuration manually here
 
 # Example of setting some sample stage positions
-current_y = move_motor('ysam', entry.samplepositions["ysam"])
-current_z = move_motor('zsam', entry.samplepositions["zsam"])
+current_y = move_motor('ysam', entry.sampleposition["ysam"])
+current_z = move_motor('zsam', entry.sampleposition["zsam"])
 
 # Example of setting additional parameters
 temperature = entry.additional_parameters.get('temperature_setpoint', None)
