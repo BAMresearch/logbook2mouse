@@ -89,8 +89,8 @@ def moveto_config(
 
 def robust_caput(pv, value, timeout=5):
     epics.caput(pv, value, timeout=timeout)
-    new_position = epics.caget(pv + ".RBV")
-    while new_position != value:
+    new_position = epics.caget(pv + ".DMOV")
+    while new_position != 1:
         time.sleep(0.2)
         new_position = epics.caget(pv)
 
