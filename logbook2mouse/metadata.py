@@ -53,7 +53,7 @@ def meta_file_structure(h5file):
     # initialize empty
     for item in ["name", "owner", "sampos"]:
         nxsam.create_dataset(item, data="", dtype=h5py.string_dtype())
-    for item in ["matrixfraction", "samplethickness", "total_mu"]:
+    for item in ["matrixfraction", "samplethickness", "overall_mu"]:
         nxsam.create_dataset(item, data=0.0, dtype=float)
     nxsam.create_dataset("sampleid", data=0, dtype=int)
     # saxslab
@@ -127,7 +127,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         dataset[...] = count_time
 
         for item in ["owner", "sampleid", "sampos",
-                     "matrixfraction", "samplethickness", "total_mu"]:
+                     "matrixfraction", "samplethickness", "overall_mu"]:
             value = epics.caget(f"{parrot_prefix}:sample:{item}")
             dataset = f[f"/entry1/sample/{item}"]
             dataset[...] = value
