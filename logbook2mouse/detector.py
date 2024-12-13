@@ -10,15 +10,22 @@ import h5py
 import numpy as np
 import logging
 from attrs import define, field, validators
+import socket
 from DEigerClient import DEigerClient
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.metadata as meta
+
+def validate_ip_address(instance, attribute, value):
+    try:
+        socket.inet_aton(value)
+    except socket.error:
+        raise ValueError(f"Invalid IP host: {value}")
 
 @define
 class DEiger:
     dcu_ip: str = field(
         default="172.17.1.2",
-        validator=validators.optional(validators.instance_of(str)),
+        validator=validator=validate_ip_address, converter=str),
     )
 
     frame_time = 10
