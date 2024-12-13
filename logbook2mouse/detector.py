@@ -73,6 +73,8 @@ def exposition(DEiger, duration=1):
     thread_counter = Thread(target=countdown_fcn)
     thread_detector.start()
     thread_counter.start()
+    while thread_detector.is_alive():
+        sleep(.2)
     print("Disarming detector..." + " "*30, end="\r", flush=True)
     send_detector_command(DEiger, "disarm")
     return "exposition done"
