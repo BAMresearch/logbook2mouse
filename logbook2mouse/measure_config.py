@@ -30,7 +30,7 @@ def move_motor(
     else:
         # assume all other motors have their own variable
         parrot_pv = f"{parrot_prefix}:environment:motors:{motorname}"
-    actual_value = epics.caget(f"{prefix}:{motorname}")
+    actual_value = epics.caget(f"{prefix}:{motorname}.RBV")
     epics.caput(parrot_pv, actual_value)
     return actual_value
 
