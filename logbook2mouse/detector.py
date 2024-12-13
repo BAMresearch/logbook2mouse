@@ -28,9 +28,15 @@ class DEiger:
         validator=validator=validate_ip_address, converter=str),
     )
 
-    frame_time = 10
+    frame_time: float = field(
+        default=10.0,
+        validator=attrs.validators.instance_of(float), converter=float
+    )
 
-    nimages_per_file = 60
+    nimages_per_file: int = field(
+        default=60,
+        validator=attrs.validators.instance_of(int), converter=int
+    )
 
     client: DEigerClient = field(init=False)
 
