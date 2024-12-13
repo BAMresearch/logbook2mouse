@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 from shutil import move, copyfile
 from time import sleep
+from threading import Thread
 import hdf5plugin
 import h5py
 import numpy as np
@@ -38,9 +39,9 @@ class DEiger:
         logging.info("taking back detector control from spec")
         self.client.sendSystemCommand("restart")
         self.client.sendDetectorCommand("initialize")
-        self.client.setDetectorConfig("photon_energy", 8000)
+        self.client.setDetectorConfig("photon_energy", 8050)
         self.client.setDetectorConfig("count_time", 1)
-        self.client.setDetectorConfig("frame_time", 1.1)
+        self.client.setDetectorConfig("frame_time", 10.0)
         self.empty_data_store()
         self.client.setFileWriterConfig("name_pattern", "eiger_$id")
         self.client.setDetectorConfig("compression", "bslz4")
@@ -53,14 +54,25 @@ def send_detector_command(DEiger, command, **kwargs):
         return 0
 
 
-def exposition(DEiger, duration=1):
-    print("Arming detector..." + " "*30, end="\r", flush=True)
-    send_detector_command(DEiger, "arm")
-    send_detector_command(DEiger, "trigger")
+def countdown(duration):
     for i in range(duration,0,-1):
         print(f"\r{i} seconds remaining for the current exposure  ",
               end='\r', flush=True)
         time.sleep(1)
+    return 0
+
+def exposition(DEiger, duration=1):
+    def send_trigger():
+        send_detector_command(DEiger, "trigger")
+
+    countdown_fcn = lambda: countdown(duration)
+
+    print("Arming detector..." + " "*30, end="\r", flush=True)
+    send_detector_command(DEiger, "arm")
+    thread_detector = Thread(target=send_trigger)
+    thread_counter = Thread(target=countdown_fcn)
+    thread_detector.start()
+    thread_counter.start()
     print("Disarming detector..." + " "*30, end="\r", flush=True)
     send_detector_command(DEiger, "disarm")
     return "exposition done"
