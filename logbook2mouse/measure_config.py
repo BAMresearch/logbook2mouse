@@ -130,9 +130,10 @@ def measure_profile(
 
 
 def measure_dataset(
-        entry, experiment, store_location: Path, duration: int = 600,
+        entry, experiment, store_location: Path, duration: float = 600.0,
 ):
-    epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", experiment.eiger.frame_time)
+    frame_time = epics.caget(f"{experiment.eiger_prefix}:FrameTime")
+    epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", frame_time)
     bsr_addr = get_address(experiment, "bsr")
     bsr = epics.caget(bsr_addr)
     move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
