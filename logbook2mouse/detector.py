@@ -95,7 +95,18 @@ def measurement_done(DEiger, duration=1, n_files=1):
 
 def measurement(experiment, duration: float = 1.0, store_location: Path = Path(".")):
     epics.caput(f"{experiment.eiger_prefix}:CountTime", duration)
+    det_state = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
+    while det_state is not "idle":
+        sleep(.1)
+        det_state = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
+    # trigger once idle
     epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
+    sleep(.1)
+    is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
+    while is_triggered:
+        # wait for trigger flag to go off
+        sleep(.1)
+        is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
 
     frompath = Path("/tmp/current/")
     pattern = epics.caget(f"{experiment.eiger_prefix}:OutputFilePrefix")
