@@ -11,7 +11,7 @@ class ExperimentVariables:
     image_processing_prefix: str = "image"
 
     def __attrs_post_init__(self):
-        epics.caput(f"{self.eiger_prefix}:Initialize", 1)
+        epics.caput(f"{self.eiger_prefix}:Initialize", True)
 
 def get_address(experiment, motorname):
     """Retrieve the pv address for a given motor name
