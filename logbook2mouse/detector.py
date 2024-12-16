@@ -94,8 +94,8 @@ def measurement_done(DEiger, duration=1, n_files=1):
 
 
 def measurement(experiment, duration: float = 1.0, store_location: Path = Path(".")):
-    epics.caput(f"{self.eiger_prefix}:CountTime", duration)
-    epics.caput(f"{self.eiger_prefix}:Trigger", 1)
+    epics.caput(f"{experiment.eiger_prefix}:CountTime", duration)
+    epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
 
     frompath = Path("/tmp/current/")
     pattern = epics.caget(f"{self.eiger_prefix}:OutputFilePrefix")
