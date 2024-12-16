@@ -109,6 +109,12 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
         sleep(.1)
         is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
 
+    # get current snapshot of chamber pressure, temperature, ...
+    # this is recorded at the end of the measurement time
+    meta.environment2parrot(experiment)
+    # write metadata file
+    meta.write_meta_nxs(store_location)
+
     frompath = Path("/tmp/current/")
     pattern = epics.caget(f"{experiment.eiger_prefix}:OutputFilePrefix")
     os.makedirs(store_location, exist_ok = True)
