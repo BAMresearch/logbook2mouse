@@ -13,6 +13,7 @@ from attrs import define, field, validators
 from DEigerClient import DEigerClient
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.metadata as meta
+import epics
 
 @define
 class DEiger:
@@ -92,63 +93,16 @@ def measurement_done(DEiger, duration=1, n_files=1):
     return "data uploaded"
 
 
-def measurement(experiment, duration: int = 1, store_location: Path = Path(".")):
-    DEiger = experiment.eiger
-    DEiger.client.setDetectorConfig("count_time", duration)
-    frame_time = DEiger.frame_time
-    DEiger.client.setDetectorConfig("frame_time", frame_time)
-    nimages_per_file = DEiger.nimages_per_file
-    DEiger.client.setFileWriterConfig("nimages_per_file", nimages_per_file)
-    n_files, n_images = filemanagement.nfiles(duration, frame_time, nimages_per_file)
-    DEiger.client.setDetectorConfig("nimages", n_images)
-    measurement_done(DEiger, duration=duration, n_files=n_files)
+def measurement(experiment, duration: float = 1.0, store_location: Path = Path(".")):
+    epics.caput(f"{self.eiger_prefix}:CountTime", duration)
+    epics.caput(f"{self.eiger_prefix}:Trigger", 1)
 
-    last_available_data = DEiger.client.fileWriterFiles()[: n_files - 1]  # order
-    # is:
-    # datafile,
-    # masterfile
-    last_available_master = DEiger.client.fileWriterFiles()[n_files - 1]
-    logging.info(f"downloading dataset {last_available_data}")
-
-    # parse file number for GISAXS_ dir
-    # measurement_no = last_available_master.split("_")[1]
-    # alternative: check whether the number can be queried from the detector
-    # (via listDetectorConfigParams(self) on the DEigerclient)
-
-    if not os.path.exists(store_location):
-        os.mkdir(store_location)
-
-    for item in last_available_data:
-        DEiger.client.fileWriterSave(item, store_location)
-    copyfile(
-        os.path.join(store_location, item),
-        Path("/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5"),
-    )
-    DEiger.client.fileWriterSave(last_available_master, store_location)
-
-    # get current snapshot of chamber pressure, temperature, ...
-    # this is recorded at the end of the measurement time
-    meta.environment2parrot(experiment)
-    # write metadata file
-    meta.write_meta_nxs(store_location)
-
-    data = None
-    for fname in last_available_data:
-        with h5py.File(os.path.join(store_location, fname)) as f:
-            if data is None:
-                data = np.array(f["entry/data/data"])
-            else:
-                data += np.array(f["entry/data/data"])
-        data_masked = np.where((data >= 0) & (data <= 1e9), data, 0)
-
-    for fname in [*last_available_data, last_available_master]:
-        # clean files from detector server
-        DEiger.client.fileWriterFiles(fname, method="DELETE")
-
-    logging.info(f"max in image: {np.max(data_masked)}")
-    flux = np.sum(data_masked) / duration
-    logging.info(f"flux: {flux} cts/s")
-    return data_masked
+    frompath = Path("/tmp/current/")
+    pattern = epics.caget(f"{self.eiger_prefix}:OutputFilePrefix")
+    os.mkdirs(store_location, exist_ok = True)
+    for fpath in frompath.glob(f"{pattern}*.h5"):
+        move(fpath, store_location)
+    print("measurement done")
 
 
 def measurement_roi(
