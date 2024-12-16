@@ -96,7 +96,8 @@ def measurement_done(DEiger, duration=1, n_files=1):
 def measurement(experiment, duration: float = 1.0, store_location: Path = Path(".")):
     epics.caput(f"{experiment.eiger_prefix}:CountTime", duration)
     det_state = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
-    while det_state is not "idle":
+    print(det_state)
+    while det_state != "idle":
         sleep(.1)
         det_state = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
     # trigger once idle
