@@ -71,7 +71,7 @@ def moveto_config(
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
-    pvs_not_to_move = ["shutter", "pressure", "pa0", "image"]
+    pvs_not_to_move = ["shutter", "pressure", "pa0", "image", "detector_eiger"]
     for pv in required_pvs:
         if not any(substr in pv for substr in pvs_not_to_move):
             prefix, motorname = pv.split(":")
