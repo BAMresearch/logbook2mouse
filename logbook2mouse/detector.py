@@ -98,7 +98,7 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
 
     frompath = Path("/tmp/current/")
-    pattern = epics.caget(f"{self.eiger_prefix}:OutputFilePrefix")
+    pattern = epics.caget(f"{experiment.eiger_prefix}:OutputFilePrefix")
     os.mkdirs(store_location, exist_ok = True)
     for fpath in frompath.glob(f"{pattern}*.h5"):
         move(fpath, store_location)
