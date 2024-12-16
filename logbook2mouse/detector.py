@@ -97,7 +97,7 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     epics.caput(f"{experiment.eiger_prefix}:CountTime", duration)
     det_ready = epics.caget(f"{experiment.eiger_prefix}:ReadyToTrigger")
     print(det_ready)
-    while det_ready == "Off":
+    while det_ready == 0:
         sleep(.1)
         det_ready = epics.caget(f"{experiment.eiger_prefix}:ReadyToTrigger")
     # trigger once idle
