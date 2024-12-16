@@ -1,7 +1,7 @@
 import attrs
 from typing import List
 
-from epics import caput
+import epics
 
 @attrs.define
 class ExperimentVariables:
