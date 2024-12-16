@@ -101,20 +101,16 @@ def measure_profile(
     mode="blank",
     duration: int = 20,  # add functionality to determine time needed later
 ):
-    if not os.path.exists(store_location):
-        os.mkdir(store_location)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         # to do: determine motors from pvs, or logbook
         move_to_sampleposition(experiment, entry, blank = True)
         beamprofilepath = store_location / "beam_profile"
-        if not os.path.exists(beamprofilepath):
-            os.mkdir(beamprofilepath)
+        os.makedirs(beamprofilepath, exist_ok = True)
     else:
         move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
-        if not os.path.exists(beamprofilepath):
-            os.mkdir(beamprofilepath)
+        os.makedirs(beamprofilepath, exist_ok = True)
     epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,

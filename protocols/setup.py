@@ -34,6 +34,7 @@ required_pvs = [
     'ims:bsr',
     'ims:bsz',
     'source_cu:shutter',
+    'detector_eiger:DetectorState'
     'pressure_gauge:pressure',
     'pa0:sample:proposal',
     'image:ratio',

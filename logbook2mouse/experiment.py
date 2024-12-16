@@ -1,17 +1,17 @@
 import attrs
 from typing import List
 
-from logbook2mouse.detector import DEiger
+from epics import caput
 
 @attrs.define
 class ExperimentVariables:
     required_pvs: List[str]
-    eiger = DEiger()
+    eiger_prefix: str = "detector_eiger"
     parrot_prefix: str = "pa0"
     image_processing_prefix: str = "image"
 
     def __attrs_post_init__(self):
-        self.eiger.set_defaults()
+        epics.caput(f"{self.eiger_prefix}:Initialize", 1)
 
 def get_address(experiment, motorname):
     """Retrieve the pv address for a given motor name
