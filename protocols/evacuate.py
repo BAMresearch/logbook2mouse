@@ -3,7 +3,7 @@
 import logging
 logger = logging.getLogger("measurement")
 logger.setLevel(logging.INFO)
-from epics import caget
+import epics
 from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
