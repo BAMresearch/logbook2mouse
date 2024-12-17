@@ -3,6 +3,7 @@ import os
 import time
 import h5py
 import logging
+from shutil import copy
 import caproto.threading.pyepics_compat as epics
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
@@ -148,6 +149,10 @@ def measure_dataset(
     detector.measurement(
         experiment, duration=duration, store_location=store_location
     )
+
+    for fname in store_location.glob("*data*.h5"):
+        copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
+
     epics.caput("source_cu:shutter", 0, wait=True)
 
 def measure_at_config(
