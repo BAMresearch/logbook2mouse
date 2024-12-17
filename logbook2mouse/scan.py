@@ -22,7 +22,7 @@ def scan(motorname, scan_start, scan_end, npoints,
     with open(scan_csv, "w", newline = "") as current_file:
         writer = DictWriter(current_file,
                             fieldnames = ["point", "value"])
-        writer.writerow({"point": motor, "value": "ratio"})
+        writer.writerow({"point": motorname, "value": "ratio"})
 
     # get pv address of transmission / image ratio
     transmission_addr = get_address(experiment, "ratio")
