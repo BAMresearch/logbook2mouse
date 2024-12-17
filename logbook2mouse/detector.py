@@ -102,17 +102,17 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
         sleep(.1)
         det_status = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
     # prepare approximate countdown
-    countdown_fcn = lambda: countdown(duration)
-    thread_counter = Thread(target=countdown_fcn)
+    countdown_pv = f"{experiment.eiger_prefix}:SecondsRemaining")
     # trigger once idle
     epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
-    thread_counter.start()
     sleep(.1)
     is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
     while is_triggered:
         # wait for trigger flag to go off
-        sleep(.1)
+        sleep(1)
         is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
+        print(f"\r{epics.caget(countdown_pv)} seconds remaining for the current exposure  ",
+              end='\r', flush=True)
 
     # get current snapshot of chamber pressure, temperature, ...
     # this is recorded at the end of the measurement time
