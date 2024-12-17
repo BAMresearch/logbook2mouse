@@ -3,6 +3,7 @@ from logbook2mouse.experiment import get_address
 import epics
 from csv import DictWriter
 from pathlib import Path
+import numpy as np
 
 def scan(motorname, scan_start, scan_end, npoints,
          seconds,
