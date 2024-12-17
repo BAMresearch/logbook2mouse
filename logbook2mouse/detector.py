@@ -10,6 +10,7 @@ import h5py
 import numpy as np
 import logging
 from attrs import define, field, validators
+import attrs
 import socket
 from DEigerClient import DEigerClient
 import logbook2mouse.file_management as filemanagement
