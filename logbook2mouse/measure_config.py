@@ -168,7 +168,7 @@ def measure_at_config(
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     config_dict = moveto_config(
         experiment.required_pvs,
-        config_path=Path("/mnt/vsi-db/Measurements/SAXS002/data/configurations"),
+        config_path=Path("/home/ws8665-epics/data/configurations"),
         config_no=config_no,
     )
 
