@@ -101,8 +101,12 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     while det_status != "idle":
         sleep(.1)
         det_status = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
+    # prepare approximate countdown
+    countdown_fcn = lambda: countdown(duration)
+    thread_counter = Thread(target=countdown_fcn)
     # trigger once idle
     epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
+    thread_counter.start()
     sleep(.1)
     is_triggered = epics.caget(f"{experiment.eiger_prefix}:Trigger_RBV")
     while is_triggered:
