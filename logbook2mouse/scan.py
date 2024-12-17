@@ -45,5 +45,6 @@ def scan(motorname, scan_start, scan_end, npoints,
             writer.writerow({"point": point, "value": transmission})
 
     # move back to initial position
-    move_motor(motorname, prefix = prefix, current_pos)
+    move_motor(motorname, position = current_pos, prefix = prefix,
+               parrot_prefix = experiment.parrot_prefix)
     return 0
