@@ -104,14 +104,20 @@ def measure_profile(
 ):
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
-        # to do: determine motors from pvs, or logbook
         move_to_sampleposition(experiment, entry, blank = True)
         beamprofilepath = store_location / "beam_profile"
         os.makedirs(beamprofilepath, exist_ok = True)
-    else:
+    elif mode == "sample":
         move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
         os.makedirs(beamprofilepath, exist_ok = True)
+    elif mode == "scan":
+        # do not move
+        beamprofilepath = store_location
+        os.makedirs(beamprofilepath, exist_ok = True)
+    else:
+        raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
+
     epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
