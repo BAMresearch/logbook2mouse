@@ -101,7 +101,7 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
         sleep(.1)
         det_status = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
     # prepare approximate countdown
-    countdown_pv = f"{experiment.eiger_prefix}:SecondsRemaining")
+    countdown_pv = f"{experiment.eiger_prefix}:SecondsRemaining"
     # trigger once idle
     epics.caput(f"{experiment.eiger_prefix}:Trigger", True)
     sleep(.1)
