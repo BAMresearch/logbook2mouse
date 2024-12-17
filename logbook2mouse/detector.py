@@ -25,7 +25,7 @@ def validate_ip_address(instance, attribute, value):
 class DEiger:
     dcu_ip: str = field(
         default="172.17.1.2",
-        validator=validator=validate_ip_address, converter=str)
+        validator=validate_ip_address, converter=str)
 
     frame_time: float = field(
         default=10.0,
