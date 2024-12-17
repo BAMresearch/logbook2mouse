@@ -129,6 +129,7 @@ def measure_profile(
             pv = "ImagePathSecondary"
         epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
 
+        copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
 
 def measure_dataset(
         entry, experiment, store_location: Path, duration: float = 600.0,
