@@ -21,7 +21,7 @@ required_pvs = [
 
 # check that the PVs are reachable before we execute a script:
 for pv in required_pvs:
-    value = caget(pv)
+    value = epics.caget(pv)
     if value is None:
         raise ConnectionError(f"PV '{pv}' is not reachable or has no value.")
 
