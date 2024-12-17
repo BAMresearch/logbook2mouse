@@ -25,15 +25,3 @@ def scan_counter_next(scan_counter, work_directory, entry):
     else:
         value = scan_counter
     return int(value)
-
-def nfiles(duration: int, frame_time: int, nimages_per_file: int) -> tuple[int]:
-    "calculate the number of expected files for a given duration"
-    nimages = duration // frame_time
-    if duration % frame_time > 0:
-        nimages += 1
-    duration = (nimages*frame_time + 3)*1.01 # same as in SL.py
-    n_files = nimages // nimages_per_file
-    if nimages % nimages_per_file > 0:
-        n_files += 1
-    n_files += 1  # master file
-    return n_files, nimages
