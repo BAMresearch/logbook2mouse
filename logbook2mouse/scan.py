@@ -31,7 +31,8 @@ def scan(motorname, scan_start, scan_end, npoints,
                              current_pos + scan_end,
                              npoints):
 
-        move_motor(motorname, prefix = prefix, point)
+        move_motor(motorname, position = point, prefix = prefix,
+                   parrot_prefix = experiment.parrot_prefix)
 
         measure_profile(entry, store_location, experiment,
                         mode="scan",
