@@ -110,11 +110,18 @@ def measure_profile(
         beamprofilepath = store_location / "beam_profile"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
-    else:
+    elif mode == "sample":
         move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
         if not os.path.exists(beamprofilepath):
             os.mkdir(beamprofilepath)
+    elif mode == "scan":
+        # do not move
+        beamprofilepath = store_location
+        if not os.path.exists(beamprofilepath):
+            os.mkdir(beamprofilepath)
+    else:
+        raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
     epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
