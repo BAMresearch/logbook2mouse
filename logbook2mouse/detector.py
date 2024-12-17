@@ -97,7 +97,6 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     epics.caput(f"{experiment.eiger_prefix}:CountTime", duration)
     epics.caput(f"{experiment.eiger_prefix}:Configure", True)
     det_status = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
-    print(det_status)
     while det_status != "idle":
         sleep(.1)
         det_status = epics.caget(f"{experiment.eiger_prefix}:DetectorState")
@@ -125,7 +124,7 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     os.makedirs(store_location, exist_ok = True)
     for fpath in frompath.glob(f"{pattern}*.h5"):
         move(fpath, store_location)
-    print("measurement done")
+
 
 
 def measurement_roi(
