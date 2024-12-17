@@ -2,6 +2,7 @@
 
 from logbook2mouse.scan import scan
 from logbook2mouse.measure_config import move_to_sampleposition
+from pathlib import Path
 
 logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
 
