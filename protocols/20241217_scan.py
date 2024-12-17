@@ -1,6 +1,7 @@
 # 20241217_scan.py
 
-from logbook2mouse.scan import scan, move_to_sampleposition
+from logbook2mouse.scan import scan
+from logbook2mouse.measure_config import move_to_sampleposition
 
 logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entry.sampleid}.')
 
