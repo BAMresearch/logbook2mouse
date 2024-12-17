@@ -3,6 +3,7 @@ import os
 import time
 import h5py
 import logging
+from shutil import copy
 import caproto.threading.pyepics_compat as epics
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
@@ -71,7 +72,7 @@ def moveto_config(
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
-    pvs_not_to_move = ["shutter", "pressure", "pa0", "image"]
+    pvs_not_to_move = ["shutter", "pressure", "pa0", "image", "detector_eiger"]
     for pv in required_pvs:
         if not any(substr in pv for substr in pvs_not_to_move):
             prefix, motorname = pv.split(":")
@@ -101,20 +102,16 @@ def measure_profile(
     mode="blank",
     duration: int = 20,  # add functionality to determine time needed later
 ):
-    if not os.path.exists(store_location):
-        os.mkdir(store_location)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
         # to do: determine motors from pvs, or logbook
         move_to_sampleposition(experiment, entry, blank = True)
         beamprofilepath = store_location / "beam_profile"
-        if not os.path.exists(beamprofilepath):
-            os.mkdir(beamprofilepath)
+        os.makedirs(beamprofilepath, exist_ok = True)
     else:
         move_to_sampleposition(experiment, entry)
         beamprofilepath = store_location / "beam_profile_through_sample"
-        if not os.path.exists(beamprofilepath):
-            os.mkdir(beamprofilepath)
+        os.makedirs(beamprofilepath, exist_ok = True)
     epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
@@ -132,11 +129,13 @@ def measure_profile(
             pv = "ImagePathSecondary"
         epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
 
+        copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
 
 def measure_dataset(
-        entry, experiment, store_location: Path, duration: int = 600,
+        entry, experiment, store_location: Path, duration: float = 600.0,
 ):
-    epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", experiment.eiger.frame_time)
+    frame_time = epics.caget(f"{experiment.eiger_prefix}:FrameTime")
+    epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", frame_time)
     bsr_addr = get_address(experiment, "bsr")
     bsr = epics.caget(bsr_addr)
     move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
@@ -151,6 +150,10 @@ def measure_dataset(
     detector.measurement(
         experiment, duration=duration, store_location=store_location
     )
+
+    for fname in store_location.glob("*data*.h5"):
+        copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
+
     epics.caput("source_cu:shutter", 0, wait=True)
 
 def measure_at_config(
