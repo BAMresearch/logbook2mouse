@@ -101,6 +101,37 @@ class MeasurementScript:
             df = pd.DataFrame.from_dict(measurement_matrix, orient = "index")
         return df
 
+    def calculate_number_of_measurements(self, entry_df):
+        """Count the number of measurements according to entry_df.
+
+        Uses the default_repetitions defined per configuration for a standard experiment,
+        although this is overwritten if the 'repetitions' keyword is given in additional_parameters.
+
+        If neither 'configuration' nor 'repetitions' is given we assume 1 repetition.
+        """
+
+        def repetitions(entry):
+            """Calculate the number of measurements per Logbook2MouseEntry.
+
+            The additional parameters settings need to be converted to int manually,
+            we receive str(float(...)) from the logbook for maximum flexibility.
+            """
+
+            if type(entry) == Logbook2MouseEntry:
+                # check for repetitions first, should overwrite the default for the configuration
+                if 'repetitions' in entry.additional_parameters:
+                    return int(float(entry.additional_parameters['repetitions']))
+                if 'configuration' in entry.additional_parameters:
+                    return default_repetitions(int(float(entry.additional_parameters['configuration'])))
+                else:
+                    return 1
+            else:
+                # all measurements are reflected as Logbook2MouseEntries
+                return 0
+
+        measurements_overall = entry_df.map(repetitions).sum()
+        return measurements_overall.values.sum()
+
     def generate_script(self):
         script_lines = []
 
@@ -108,6 +139,7 @@ class MeasurementScript:
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'setup.py')
 
         entry_df = self.collate_configurations()
+        measurements_overall = self.calculate_number_of_measurements(entry_df)
         for r, row in entry_df.iterrows():
             for e, entry in row.items():
                 if type(entry) == Logbook2MouseEntry:
