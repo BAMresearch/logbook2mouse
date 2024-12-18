@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger("logbook2mouse")
 
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
-from logbook2mouse.measure_config import standard_configurations
+from logbook2mouse.measure_config import standard_configurations, default_repetitions
 
 @attrs.define
 class MeasurementScript:

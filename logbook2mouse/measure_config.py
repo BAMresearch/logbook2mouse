@@ -175,16 +175,7 @@ def measure_at_config(
     meta.logbook2parrot(entry)
 
     if repetitions is None:
-        if int(config_no) in [117, 127]:
-            repetitions = 16
-        elif int(config_no) in [115, 125]:
-            repetitions = 10
-        elif int(config_no) in [113, 123]:
-            repetitions = 5
-        elif int(config_no) in [110]:
-            repetitions = 4
-        else:
-            repetitions = 1
+        repetitions = default_repetitions(config_no)
 
     logger = logging.getLogger("measurement")
     logger.info(f"Measuring {repetitions} repetitions.")
@@ -222,3 +213,16 @@ Specify the configurations to measure explicitly one by one,
 with e.g. 'key1=configuration' and 'value1=123' for configuration 123."""
         )
     return configurations
+
+def default_repetitions(config_no: int = 110):
+    if config_no in [117, 127]:
+        repetitions = 16
+    elif config_no in [115, 125]:
+        repetitions = 10
+    elif config_no in [113, 123]:
+        repetitions = 5
+    elif config_no in [110]:
+        repetitions = 4
+    else:
+        repetitions = 1
+    return repetitions
