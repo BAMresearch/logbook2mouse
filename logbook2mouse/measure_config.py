@@ -199,6 +199,9 @@ def measure_at_config(
             store_location=store_location,
             duration=duration,
         )
+        # update the counter for measurement progress
+        measurements_so_far = epics.caget(f'{experiment.parrot_prefix}:exp:progress:measurements_completed')
+        epics.caput(f'{experiment.parrot_prefix}:exp:progress:measurements_completed', measurements_so_far + 1)
 
 
 def standard_configurations(keyword: str = "standard"):
