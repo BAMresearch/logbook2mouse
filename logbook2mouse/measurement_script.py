@@ -140,6 +140,8 @@ class MeasurementScript:
 
         entry_df = self.collate_configurations()
         measurements_overall = self.calculate_number_of_measurements(entry_df)
+        logger.info(f"{measurements_overall} measurements are planned overall.")
+        script_lines += r"caput(f'{experiment.parrot_prefix}:exp:progress:measurements_overall'," + f"{measurements_overall}" + ")\n"
         for r, row in entry_df.iterrows():
             for e, entry in row.items():
                 if type(entry) == Logbook2MouseEntry:
