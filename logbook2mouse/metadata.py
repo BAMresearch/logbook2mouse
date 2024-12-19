@@ -138,7 +138,7 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
         # X-ray source
         source_name = epics.caget(f"{parrot_prefix}:config:source")
         dataset = f["/entry1/instrument/source/name"]
-        dataset[...] = source_name
+        dataset[...] = str(source_name)
 
         for item in ["current", "voltage"]:
             data = epics.caget(f"{parrot_prefix}:config:{source_name}:{item}")
