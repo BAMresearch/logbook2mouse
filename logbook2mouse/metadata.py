@@ -41,7 +41,8 @@ def meta_file_structure(h5file):
 
     expgroup = nxentry.create_group('experiment')
     for item in ["experiment_identifier", "user", "logbook_date",
-                 "protocol", "procpipeline", "additional_parameters"]:
+                 "protocol", "procpipeline", "additional_parameters",
+                 "shutter"]:
         expgroup.create_dataset(item, data="")
     expgroup.create_dataset("batchnum", 0)
     for item in ["stage_temperature", "environment_temperature"]:
@@ -57,7 +58,7 @@ def meta_file_structure(h5file):
     nxdet.create_dataset("count_time", data=0.0)
 
     # X-ray source
-    nxsource = nxinst.create_group('sources')
+    nxsource = nxinst.create_group('source')
     nxsource.attrs['NX_class'] = 'NXsource'
     nxsource.create_dataset("type", data = "Fixed Tube X-ray")
     nxsource.create_dataset("probe", data = "x-ray")
@@ -66,7 +67,6 @@ def meta_file_structure(h5file):
     current.attrs['units'] = "mA"
     voltage = nxsource.create_dataset("voltage", data = 0.0)
     voltage.attrs['units'] = "kV"
-
 
     nxsam = nxentry.create_group('sample')
     nxsam.attrs['NX_class'] = 'NXsample'
@@ -94,7 +94,7 @@ def meta_file_structure(h5file):
 
     for motor in ["ysam", "zsam",
                   "zheavy", "pitchgi", "rollgi", "yawgi",
-                  "bsr", "bsz"]:
+                  "bsr", "bsz", "dual"]:
         # initialize empty
         nxsaxslab.create_dataset(motor, data=0.0, dtype = "f")
 
@@ -135,6 +135,21 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
             dataset = f[f"/entry1/experiment/{item}"]
             dataset[...] = data
 
+        # X-ray source
+        source_name = epics.caget(f"{parrot_prefix}:config:source")
+        dataset = f["/entry1/instrument/source/name"]
+        dataset[...] = source_name
+
+        for item in ["current", "voltage"]:
+            data = epics.caget(f"{parrot_prefix}:config:{source_name}:{item}")
+            dataset = f[f"/entry1/instrument/source/{item}"]
+            dataset[...] = data
+
+        shutter_state = epics.caget(f"{parrot_prefix}:config:{source_name}:shutter")
+        dataset = f["/entry1/experiment/shutter"]
+        dataset[...] = shutter_state
+
+        # save additional parameters - to fix: contains \x00 before every character
         value = epics.caget(f"{parrot_prefix}:exp:additional_parameters")
         #value = value.tobytes().encode('ASCII')
         value = value.tobytes().decode('utf-8')
@@ -168,6 +183,10 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
             detdata = epics.caget(f"{parrot_prefix}:config:beamstop:{bsmotor}")
             dataset = f[f"/saxs/Saxslab/{bsmotor}"]
             dataset[...] = detdata
+
+        dualdata = epics.caget(f"{parrot_prefix}:config:dual")
+        dataset = f[f"/saxs/Saxslab/dual"]
+        dataset[...] = dualdata
 
         # motor positions
 
