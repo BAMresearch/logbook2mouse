@@ -32,7 +32,7 @@ def environment2parrot(experiment):
             f"{experiment.parrot_prefix}:environment:stage_temperature",
             temperature1)
     # X-ray source
-    if "source_cu:shutter" in required_pvs:
+    if "source_cu:shutter" in experiment.required_pvs:
         source_name = "source_cu"
     else:
         source_name = "source_mo"
