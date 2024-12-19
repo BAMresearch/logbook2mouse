@@ -1,4 +1,4 @@
-from logbook2mouse.measure_config import move_motor, measure_profile
+from logbook2mouse.measure_config import move_motor, measure_profile, move_to_sampleposition
 from logbook2mouse.experiment import get_address
 import epics
 from csv import DictWriter
@@ -14,9 +14,11 @@ def scan(motorname, scan_start, scan_end, npoints,
     current_pos = epics.caget(motor_addr)
 
     # measure direct beam as a reference
+    move_to_sampleposition(experiment, sampleposition, blank = True)
     measure_profile(entry, store_location, experiment,
                     mode="blank",
                     duration=seconds)
+    move_to_sampleposition(experiment, sampleposition)
 
     # write values to where the dashboard can see them
     scan_csv = Path("/home/ws8665-epics/scan-using-epics-ioc/") / "current_scan.csv"
