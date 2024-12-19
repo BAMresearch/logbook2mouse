@@ -27,7 +27,7 @@ def scan(motorname, scan_start, scan_end, npoints,
 
     # get pv address of transmission / image ratio
     transmission_addr = get_address(experiment, "ratio")
-
+    counter = 0
     for point in np.linspace(current_pos + scan_start,
                              current_pos + scan_end,
                              npoints):
@@ -35,7 +35,9 @@ def scan(motorname, scan_start, scan_end, npoints,
         move_motor(motorname, position = point, prefix = prefix,
                    parrot_prefix = experiment.parrot_prefix)
 
-        measure_profile(entry, store_location, experiment,
+        store_point = store_location / f"scan_{counter}"
+        counter += 1
+        measure_profile(entry, store_point, experiment,
                         mode="scan",
                         duration=seconds)
 
