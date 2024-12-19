@@ -7,7 +7,7 @@ import numpy as np
 
 def scan(motorname, scan_start, scan_end, npoints,
          seconds,
-         experiment, entry, store_location):
+         experiment, sampleposition, store_location):
     """Scan and record transmission relative to the current position."""
     motor_addr = get_address(experiment, motorname)
     prefix = motor_addr.rstrip(f":{motorname}")
@@ -15,7 +15,7 @@ def scan(motorname, scan_start, scan_end, npoints,
 
     # measure direct beam as a reference
     move_to_sampleposition(experiment, sampleposition, blank = True)
-    measure_profile(entry, store_location, experiment,
+    measure_profile(sampleposition, store_location, experiment,
                     mode="blank",
                     duration=seconds)
     move_to_sampleposition(experiment, sampleposition)
@@ -39,7 +39,7 @@ def scan(motorname, scan_start, scan_end, npoints,
 
         store_point = store_location / f"scan_{counter}"
         counter += 1
-        measure_profile(entry, store_point, experiment,
+        measure_profile(sampleposition, store_point, experiment,
                         mode="scan",
                         duration=seconds)
 
