@@ -62,8 +62,10 @@ def meta_file_structure(h5file):
     nxsource.create_dataset("type", data = "Fixed Tube X-ray")
     nxsource.create_dataset("probe", data = "x-ray")
     nxsource.create_dataset("name", data = "")
-    nxsource.create_dataset("current", data = 0.0, units="mA")
-    nxsource.create_dataset("voltage", data = 0.0, units="kV")
+    current = nxsource.create_dataset("current", data = 0.0)
+    current.attrs['units'] = "mA"
+    voltage = nxsource.create_dataset("voltage", data = 0.0)
+    voltage.attrs['units'] = "kV"
 
 
     nxsam = nxentry.create_group('sample')
