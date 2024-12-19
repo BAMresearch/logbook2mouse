@@ -40,8 +40,15 @@ def environment2parrot(experiment):
                 source_name
                 )
 
-    for item in ["shutter", "current", "voltage"]:
-        data = epics.caget(f"{source_name}:{item}")
+    shutter_data = epics.caget(f"{source_name}:shutter",
+                               as_string = True)
+    epics.caput(
+        f"{experiment.parrot_prefix}:config:{source_name}:shutter",
+        shutter_data)
+
+    for item in ["current", "voltage"]:
+        data = epics.caget(f"{source_name}:{item}_RBV")
+        data /= 10  # to convert to kV and mA
         epics.caput(
             f"{experiment.parrot_prefix}:config:{source_name}:{item}",
             data)
