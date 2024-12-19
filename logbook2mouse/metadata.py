@@ -21,6 +21,16 @@ def environment2parrot(experiment):
     if "pressure_gauge:pressure" in experiment.required_pvs:
         pressure = epics.caget("pressure_gauge:pressure")
         epics.caput(f"{experiment.parrot_prefix}:environment:pressure", pressure)
+    if "portenta:t0" in experiment.required_pvs:
+        temperature0 = epics.caget("portenta:t0")
+        epics.caput(
+            f"{experiment.parrot_prefix}:environment:environment_temperature",
+            temperature0)
+    if "portenta:t1" in experiment.required_pvs:
+        temperature1 = epics.caget("portenta:t1")
+        epics.caput(
+            f"{experiment.parrot_prefix}:environment:sample_temperature",
+            temperature1)
 
 def meta_file_structure(h5file):
     h5file.attrs['default'] = "entry1"
@@ -34,6 +44,8 @@ def meta_file_structure(h5file):
                  "protocol", "procpipeline", "additional_parameters"]:
         expgroup.create_dataset(item, data="")
     expgroup.create_dataset("batchnum", 0)
+    for item in ["sample_temperature", "environment_temperature"]:
+        temp = expgroup.create_dataset(item, data=0.0)
 
     nxinst = nxentry.create_group('instrument')
     nxinst.attrs['NX_class'] = 'NXinstrument'
@@ -172,6 +184,10 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
                     dataset[...] = slit_data
 
         # environment variables
+        for item in ["sample_temperature", "environment_temperature"]:
+            temp = epics.caget(f"{parrot_prefix}:environment:{item}")
+            dataset = f[f"/entry1/experiment/{item}"]
+            dataset[...] = temp
         pressure = epics.caget(f"{parrot_prefix}:environment:pressure")
         dataset = f["/saxs/Saxslab/chamber_pressure"]
         dataset[...] = pressure
