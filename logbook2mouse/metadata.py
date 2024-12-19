@@ -54,8 +54,17 @@ def meta_file_structure(h5file):
     nxdet = nxinst.create_group('detector00')
     nxdet.attrs['NX_class'] = 'NXdetector'
 
-    # initialize empty
     nxdet.create_dataset("count_time", data=0.0)
+
+    # X-ray source
+    nxsource = nxinst.create_group('sources')
+    nxsource.attrs['NX_class'] = 'NXsource'
+    nxsource.create_dataset("type", data = "Fixed Tube X-ray")
+    nxsource.create_dataset("probe", data = "x-ray")
+    nxsource.create_dataset("name", data = "")
+    nxsource.create_dataset("current", data = 0.0, units="mA")
+    nxsource.create_dataset("voltage", data = 0.0, units="kV")
+
 
     nxsam = nxentry.create_group('sample')
     nxsam.attrs['NX_class'] = 'NXsample'
@@ -67,6 +76,7 @@ def meta_file_structure(h5file):
     for item in ["matrixfraction", "samplethickness", "overall_mu"]:
         nxsam.create_dataset(item, data=0.0, dtype=float)
     nxsam.create_dataset("sampleid", data=0, dtype=int)
+
     # saxslab
 
     nxsaxs = h5file.create_group('saxs')
