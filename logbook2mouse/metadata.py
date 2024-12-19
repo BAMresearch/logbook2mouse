@@ -48,7 +48,7 @@ def environment2parrot(experiment):
 
     for item in ["current", "voltage"]:
         data = epics.caget(f"{source_name}:{item}_RBV")
-        data /= 10  # to convert to kV and mA
+        data /= 100  # to convert to kV and mA
         epics.caput(
             f"{experiment.parrot_prefix}:config:{source_name}:{item}",
             data)
