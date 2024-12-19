@@ -34,10 +34,11 @@ required_pvs = [
     'ims:bsr',
     'ims:bsz',
     'source_cu:shutter',
-    'detector_eiger:DetectorState',
-    'pressure_gauge:pressure',
-    'pa0:sample:proposal',
-    'image:ratio',
+    'detector_eiger:DetectorState',  # detector control
+    'pressure_gauge:pressure',  # chamber pressure sensor
+    'portenta:t0', 'portenta:t1',  # temperature sensors
+    'pa0:sample:proposal',  # metadata server aka parrot
+    'image:ratio',  # image analysis ioc
 ]
 
 # check that the PVs are reachable before we execute a script:
