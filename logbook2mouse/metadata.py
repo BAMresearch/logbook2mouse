@@ -31,6 +31,20 @@ def environment2parrot(experiment):
         epics.caput(
             f"{experiment.parrot_prefix}:environment:stage_temperature",
             temperature1)
+    # X-ray source
+    if "source_cu:shutter" in required_pvs:
+        source_name = "source_cu"
+    else:
+        source_name = "source_mo"
+    epics.caput(f"{experiment.parrot_prefix}:config:source",
+                source_name
+                )
+
+    for item in ["shutter", "current", "voltage"]:
+        data = epics.caget(f"{source_name}:{item}")
+        epics.caput(
+            f"{experiment.parrot_prefix}:config:{source_name}:{item}",
+            data)
 
 def meta_file_structure(h5file):
     h5file.attrs['default'] = "entry1"
@@ -62,7 +76,7 @@ def meta_file_structure(h5file):
     nxsource.attrs['NX_class'] = 'NXsource'
     nxsource.create_dataset("type", data = "Fixed Tube X-ray")
     nxsource.create_dataset("probe", data = "x-ray")
-    nxsource.create_dataset("name", data = "")
+    nxsource.create_dataset("name", data = "none")
     current = nxsource.create_dataset("current", data = 0.0)
     current.attrs['units'] = "mA"
     voltage = nxsource.create_dataset("voltage", data = 0.0)
@@ -136,16 +150,18 @@ def write_meta_nxs(store_location, parrot_prefix: str="pa0"):
             dataset[...] = data
 
         # X-ray source
-        source_name = epics.caget(f"{parrot_prefix}:config:source")
+        source_name = epics.caget(f"{parrot_prefix}:config:source",
+                                  as_string = True)
         dataset = f["/entry1/instrument/source/name"]
-        dataset[...] = str(source_name)
+        dataset[...] = source_name
 
         for item in ["current", "voltage"]:
             data = epics.caget(f"{parrot_prefix}:config:{source_name}:{item}")
             dataset = f[f"/entry1/instrument/source/{item}"]
             dataset[...] = data
 
-        shutter_state = epics.caget(f"{parrot_prefix}:config:{source_name}:shutter")
+        shutter_state = epics.caget(f"{parrot_prefix}:config:{source_name}:shutter",
+                                    as_string = True)
         dataset = f["/entry1/experiment/shutter"]
         dataset[...] = shutter_state
 
