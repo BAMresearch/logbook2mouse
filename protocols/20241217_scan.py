@@ -15,5 +15,5 @@ if "configuration" in entry.additional_parameters.keys():
 print(f"Starting measurement for sample {entry.proposal}-{entry.sampleid} in configuration {configuration}.")
 
 # blank and transmission measurements are included
-move_to_sampleposition(experiment, entry)
-scan("ysam", -3, 3, 11, 1, experiment, entry, store_location = Path("/tmp/scan"))
+move_to_sampleposition(experiment, entry.sampleposition)
+scan("ysam", -3, 3, 11, 1, experiment, entry.sampleposition, store_location = Path("/tmp/scan"))
