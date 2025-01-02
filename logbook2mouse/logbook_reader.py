@@ -49,6 +49,10 @@ class Logbook2MouseEntry:
     project: Optional[ProjectInfo] = attrs.field(default=None)
     sample: Optional[Sample] = attrs.field(default=None)
     sampleposition: Optional[Dict[str, float]] = attrs.field(default=None)
+    ymd: str = attrs.field(init=False)
+
+    def __attrs_post_init__(self):
+        self.ymd = self.date.strftime("%Y%m%d")
 
     @classmethod
     def from_series(cls, series: pd.Series):
