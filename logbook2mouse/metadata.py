@@ -2,6 +2,8 @@ import h5py
 import os
 import numpy as np
 import caproto.threading.pyepics_compat as epics
+from caproto import CaprotoTimeoutError
+
 
 def logbook2parrot(entry, parrot_prefix: str = "pa0"):
     for item in ["proposal", "sampleid", "sampos", "matrixfraction", "samplethickness"]:
@@ -18,19 +20,33 @@ def logbook2parrot(entry, parrot_prefix: str = "pa0"):
     epics.caput(f"{parrot_prefix}:sample:owner", entry.project.name)
 
 def environment2parrot(experiment):
+    """Get environment sensor data and write to parrot.
+
+    Data written to parrot defaults to -1.0 in case of timeouts.
+    """
     if "pressure_gauge:pressure" in experiment.required_pvs:
-        pressure = epics.caget("pressure_gauge:pressure")
+        try:
+            pressure = epics.caget("pressure_gauge:pressure")
+        except CaprotoTimeoutError:
+            pressure = -1.0
         epics.caput(f"{experiment.parrot_prefix}:environment:pressure", pressure)
     if "portenta:t0" in experiment.required_pvs:
-        temperature0 = epics.caget("portenta:t0")
+        try:
+            temperature0 = epics.caget("portenta:t0")
+        except CaprotoTimeoutError:
+            temperature0 = -1.0
         epics.caput(
             f"{experiment.parrot_prefix}:environment:environment_temperature",
-            temperature0)
+            temperature0,
+        )
     if "portenta:t1" in experiment.required_pvs:
-        temperature1 = epics.caget("portenta:t1")
+        try:
+            temperature1 = epics.caget("portenta:t1")
+        except CaprotoTimeoutError:
+            temperature1 = -1.0
         epics.caput(
-            f"{experiment.parrot_prefix}:environment:stage_temperature",
-            temperature1)
+            f"{experiment.parrot_prefix}:environment:stage_temperature", temperature1
+        )
     # X-ray source
     if "source_cu:shutter" in experiment.required_pvs:
         source_name = "source_cu"
