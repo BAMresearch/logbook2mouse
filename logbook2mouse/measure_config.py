@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import time
 import h5py
+from math import isclose
 import logging
 from shutil import copy
 import caproto.threading.pyepics_compat as epics
@@ -57,8 +58,13 @@ def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
-    logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
+    current_position = epics.caget(f"{prefix}:{motorname}.RBV")  # ensure motor actually there
+    if isclose(current_position, motorpos, rel_tol = 1e-3, abs_tol = 0.1):  # 0.1% or 0.1 deviation
+        logging.info(f"Motor {motorname} already at stored position {motorpos}.")
+    else:
+        move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
+        logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
+
     return motorname, motorpos
 
 
