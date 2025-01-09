@@ -72,6 +72,7 @@ def moveto_config(
     required_pvs,
     config_path: Path = Path("/home/ws8665-epics/data/configurations"),
     config_no: int = 110,
+    parrot_prefix: str = "pa0",
 ):
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     # don't move at all if we are at this config according to parrot
@@ -91,11 +92,9 @@ def moveto_config(
             name, position = move_motor_fromconfig(
                 motorname, imcrawfile=configfile, prefix=prefix
             )
-            if name == "bsr":
-                bsr = position
 
-    epics.caput("pa0:config:config_id", config_no)
-    return {"bsr": position}
+    epics.caput(f"{parrot_prefix}:config:config_id", config_no)
+    return
 
 
 def robust_caput(pv, value, timeout=5):
@@ -178,10 +177,11 @@ def measure_at_config(
     """Measure with the default settings for each configuration."""
 
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
-    config_dict = moveto_config(
+    moveto_config(
         experiment.required_pvs,
         config_path=Path("/home/ws8665-epics/data/configurations"),
         config_no=config_no,
+        parrot_prefix=experiment.parrot_prefix,
     )
 
     meta.logbook2parrot(entry)
