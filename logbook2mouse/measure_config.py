@@ -58,8 +58,8 @@ def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    current_position = epics.caget(f"{prefix}:{motorname}.RBV")  # ensure motor actually there
-    if isclose(current_position, motorpos, rel_tol = 1e-3, abs_tol = 0.1):  # 0.1% or 0.1 deviation
+    current_position = epics.caget(f"{prefix}:{motorname}.VAL")  # use set position to ensure close match
+    if isclose(current_position, motorpos, rel_tol = 1e-8, abs_tol = 1e-5):
         logging.info(f"Motor {motorname} already at stored position {motorpos}.")
     else:
         move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
