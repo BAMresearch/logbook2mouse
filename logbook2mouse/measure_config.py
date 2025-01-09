@@ -74,6 +74,12 @@ def moveto_config(
     config_no: int = 110,
 ):
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
+    # don't move at all if we are at this config according to parrot
+    latest_config = int(epics.caget(f"{parrot_prefix}:config:config_id"))
+    if latest_config == config_no:
+        # exit without moving
+        return
+
     configfile = config_path / f"{config_no}.nxs"
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
