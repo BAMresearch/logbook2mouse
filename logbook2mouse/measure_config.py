@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import time
 import h5py
+from math import isclose
 import logging
 from shutil import copy
 import caproto.threading.pyepics_compat as epics
@@ -57,8 +58,13 @@ def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
-    logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
+    current_position = epics.caget(f"{prefix}:{motorname}.VAL")  # use set position to ensure close match
+    if isclose(current_position, motorpos, rel_tol = 1e-8, abs_tol = 1e-5):
+        logging.info(f"Motor {motorname} already at stored position {motorpos}.")
+    else:
+        move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
+        logging.info(f"Moved motor {motorname} to stored position {motorpos}.")
+
     return motorname, motorpos
 
 
@@ -66,24 +72,29 @@ def moveto_config(
     required_pvs,
     config_path: Path = Path("/home/ws8665-epics/data/configurations"),
     config_no: int = 110,
+    parrot_prefix: str = "pa0",
 ):
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
+    # don't move at all if we are at this config according to parrot
+    latest_config = int(epics.caget(f"{parrot_prefix}:config:config_id"))
+    if latest_config == config_no:
+        # exit without moving
+        return
+
     configfile = config_path / f"{config_no}.nxs"
     if not configfile.is_file():
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
-    pvs_not_to_move = ["shutter", "pressure", "pa0", "image", "detector_eiger"]
+    pvs_to_move = ["ims"]  # only move motors on ims, i.e. not sample motors
     for pv in required_pvs:
-        if not any(substr in pv for substr in pvs_not_to_move):
+        if any(substr in pv for substr in pvs_to_move):
             prefix, motorname = pv.split(":")
             name, position = move_motor_fromconfig(
                 motorname, imcrawfile=configfile, prefix=prefix
             )
-            if name == "bsr":
-                bsr = position
 
-    epics.caput("pa0:config:config_id", config_no)
-    return {"bsr": position}
+    epics.caput(f"{parrot_prefix}:config:config_id", config_no)
+    return
 
 
 def robust_caput(pv, value, timeout=5):
@@ -166,25 +177,17 @@ def measure_at_config(
     """Measure with the default settings for each configuration."""
 
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
-    config_dict = moveto_config(
+    moveto_config(
         experiment.required_pvs,
         config_path=Path("/home/ws8665-epics/data/configurations"),
         config_no=config_no,
+        parrot_prefix=experiment.parrot_prefix,
     )
 
     meta.logbook2parrot(entry)
 
     if repetitions is None:
-        if int(config_no) in [117, 127]:
-            repetitions = 16
-        elif int(config_no) in [115, 125]:
-            repetitions = 10
-        elif int(config_no) in [113, 123]:
-            repetitions = 5
-        elif int(config_no) in [110]:
-            repetitions = 4
-        else:
-            repetitions = 1
+        repetitions = default_repetitions(config_no)
 
     logger = logging.getLogger("measurement")
     logger.info(f"Measuring {repetitions} repetitions.")
@@ -208,6 +211,9 @@ def measure_at_config(
             store_location=store_location,
             duration=duration,
         )
+        # update the counter for measurement progress
+        measurements_so_far = epics.caget(f'{experiment.parrot_prefix}:exp:progress:measurements_completed')
+        epics.caput(f'{experiment.parrot_prefix}:exp:progress:measurements_completed', measurements_so_far + 1)
 
 
 def standard_configurations(keyword: str = "standard"):
@@ -222,3 +228,16 @@ Specify the configurations to measure explicitly one by one,
 with e.g. 'key1=configuration' and 'value1=123' for configuration 123."""
         )
     return configurations
+
+def default_repetitions(config_no: int = 110):
+    if config_no in [117, 127]:
+        repetitions = 16
+    elif config_no in [115, 125]:
+        repetitions = 10
+    elif config_no in [113, 123]:
+        repetitions = 5
+    elif config_no in [110]:
+        repetitions = 4
+    else:
+        repetitions = 1
+    return repetitions
