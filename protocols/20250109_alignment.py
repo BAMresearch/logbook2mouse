@@ -55,8 +55,8 @@ move_motor("pitchgi", pitch_center, prefix="mc0")
 
 rolloffset = 0.9*halfsample
 roll_center = align.roll_align(experiment, y_center, sigma, 0.5*samplewidth*0.75, centerofrotation = 31,
-                               entry.sampleposition,
-                               scan_dir)
+                               sampleposition=entry.sampleposition,
+                               store_location=scan_dir)
 
 pitch_center, center = align.pitch_align(experiment, start_z=center,
                                          start_pitch=pitch_center,
