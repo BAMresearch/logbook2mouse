@@ -12,7 +12,7 @@ import os
 
 def create_scandir(work_dir):
     new_dir_no = scan_counter_simple(0, work_dir)
-    scandir = work_dir / f"scan_{new_dir_no}",
+    scandir = work_dir / f"scan_{new_dir_no}"
     os.makedirs(scandir,
                 exist_ok = True)
     return scandir
