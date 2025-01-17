@@ -18,7 +18,7 @@ repetitions = entry.additional_parameters.get('repetitions', 10)
 
 ymd = entry.date.strftime("%Y%m%d")
 wd = Path(work_directory(entry)) / ymd
-aligned_data =  wd / f"{ymd}_{entry.batchnum}_{0}")
+aligned_data =  wd / f"{ymd}_{entry.batchnum}_{1}"
 scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 
 # move to aligned position
