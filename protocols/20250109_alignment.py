@@ -3,7 +3,7 @@
 from logbook2mouse.measure_config import (
     move_motor, move_to_sampleposition, moveto_config,
     measure_at_config)
-import alignment as align  # to do
+import mouse_alignment_routines.alignment as align
 from pathlib import Path
 
 # design needs:
