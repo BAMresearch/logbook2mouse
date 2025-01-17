@@ -14,7 +14,7 @@ if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
 incident_angle = entry.additional_parameters.get('incident_angle', 0.21)
-
+repetitions = entry.additional_parameters.get('repetitions', 10)
 
 ymd = entry.date.strftime("%Y%m%d")
 wd = Path(work_directory(entry)) / ymd
@@ -36,7 +36,7 @@ move_motor("pitchgi", pitch)
 measure_at_config(
     config_id = configuration,
     entry = entry,
-    repetitions = 10,
+    repetitions = repetitions,
     duration = 600,
 )
 
