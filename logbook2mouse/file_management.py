@@ -28,8 +28,7 @@ def scan_counter_next(scan_counter, work_directory, entry):
 
 def scan_counter_simple(scan_counter, work_directory):
     get_no = lambda dirname: int(dirname.split("_")[-1])
-    ymd = entry.date.strftime('%Y%m%d')
-    scan_numbers = np.array([get_no(d) for d in next(os.walk(work_directory))[1] if d.startswith(f"{ymd}_")])
+    scan_numbers = np.array([get_no(d) for d in next(os.walk(work_directory))[1] if d.startswith(f"scan_")])
     if scan_numbers.size == 0:
         value = 0
     elif scan_counter <= np.max(scan_numbers):
