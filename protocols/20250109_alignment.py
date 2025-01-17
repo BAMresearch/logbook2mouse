@@ -48,8 +48,8 @@ pitch_center, center = align.pitch_align(experiment, start_z=start_z,
                                          start_pitch=0,
                                          sigma_beam=sigma,
                                          halfsample=0.5*samplelength,
-                                         entry.sampleposition,
-                                         scan_dir)
+                                         sampleposition=entry.sampleposition,
+                                         store_location=scan_dir)
 move_motor("zheavy", center, prefix="mc0")
 move_motor("pitchgi", pitch_center, prefix="mc0")
 
@@ -62,8 +62,8 @@ pitch_center, center = align.pitch_align(experiment, start_z=center,
                                          start_pitch=pitch_center,
                                          sigma_beam=sigma,
                                          halfsample=halfsample,
-                                         entry.sampleposition,
-                                         scan_dir)
+                                         sampleposition=entry.sampleposition,
+                                         store_location=scan_dir)
 logging.info(f"horizontal position pitch: {pitch_center}°")
 logging.info(f"sample surface, vertical position: {center} mm")
 
