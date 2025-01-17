@@ -1,9 +1,21 @@
 from logbook2mouse.measure_config import move_motor, measure_profile, move_to_sampleposition
 from logbook2mouse.experiment import get_address
+from logbook2mouse.file_management import scan_counter_simple
 import epics
 from csv import DictWriter
 from pathlib import Path
 import numpy as np
+import os
+
+
+
+
+def create_scandir(work_dir):
+    new_dir_no = scan_counter_simple(0, work_dir)
+    scandir = work_dir / f"{ymd}_{new_dir_no}",
+    os.makedirs(scandir,
+                exist_ok = True)
+    return scandir
 
 def scan(motorname, scan_start, scan_end, npoints,
          seconds,
@@ -12,6 +24,7 @@ def scan(motorname, scan_start, scan_end, npoints,
     motor_addr = get_address(experiment, motorname)
     prefix = motor_addr.rstrip(f":{motorname}")
     current_pos = epics.caget(motor_addr)
+    store_location = create_scandir(store_location)
 
     # measure direct beam as a reference
     move_to_sampleposition(experiment, sampleposition, blank = True)
