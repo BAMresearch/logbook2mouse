@@ -6,6 +6,7 @@ from logbook2mouse.measure_config import (
 from logbook2mouse.file_management import work_directory
 import mouse_alignment_routines.alignment as align
 from pathlib import Path
+import os
 
 # design needs:
 # - have approximate sample length (and width?) somewhere
@@ -25,6 +26,7 @@ samplewidth = entry.additional_parameters.get('samplewidth', samplelength)
 # define where to save scans
 ymd = entry.date.strftime("%Y%m%d")
 scan_dir = Path(work_directory(entry)) / ymd / f"{ymd}_{entry.batchnum}_{0}" / "scans"
+os.makedirs(scan_dir / "scan_0", exist_ok=True)
 
 move_to_sampleposition(experiment, entry.sampleposition)
 # does this also set the sample name? Don't think so
