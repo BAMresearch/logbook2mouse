@@ -43,6 +43,7 @@ def scan(motorname, scan_start, scan_end, npoints,
     # get pv address of transmission / image ratio
     transmission_addr = get_address(experiment, "ratio")
     counter = 0
+    epics.caput("source_cu:shutter", 1, wait=True)
     for point in np.linspace(current_pos + scan_start,
                              current_pos + scan_end,
                              npoints):
@@ -62,6 +63,7 @@ def scan(motorname, scan_start, scan_end, npoints,
                                 fieldnames = ["point", "value"])
             writer.writerow({"point": point, "value": transmission})
 
+    epics.caput("source_cu:shutter", 0, wait=True)
     # move back to initial position
     move_motor(motorname, position = current_pos, prefix = prefix,
                parrot_prefix = experiment.parrot_prefix)

@@ -119,14 +119,15 @@ def measure_profile(
     else:
         raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
 
-    epics.caput("source_cu:shutter", 1, wait=True)
+    if mode in ["blank", "sample"]:
+        epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
-
-    epics.caput("source_cu:shutter", 0, wait=True)
+    if mode in ["blank", "sample"]:
+        epics.caput("source_cu:shutter", 0, wait=True)
 
     # communicate to image processing ioc which expects the _data_*h5 files
     for fname in beamprofilepath.glob("*data*.h5"):
