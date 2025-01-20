@@ -70,7 +70,7 @@ def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
 
 def moveto_config(
     required_pvs,
-    config_path: Path = Path("/home/ws8665-epics/data/configurations"),
+    config_path: Path = Path.home() / "data/configurations",
     config_no: int = 110,
     parrot_prefix: str = "pa0",
 ):
@@ -179,7 +179,7 @@ def measure_at_config(
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     moveto_config(
         experiment.required_pvs,
-        config_path=Path("/home/ws8665-epics/data/configurations"),
+        config_path=Path.home() / "data/configurations",
         config_no=config_no,
         parrot_prefix=experiment.parrot_prefix,
     )

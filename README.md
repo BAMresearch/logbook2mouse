@@ -38,5 +38,56 @@ Stick to a single representative value when you can. Again, use a reasonable est
 ## Usage
 
 ```bash
+usage: __main__.py [-h] [-v] [--log_file LOG_FILE] [-V] [-c]
+                   logbook_file protocols_directory project_base_path output_script_file
+
+Logbook to Measurement Script Generator
+
+positional arguments:
+  logbook_file         Path to the logbook Excel file
+  protocols_directory  Path to the directory containing protocol files
+  project_base_path    Path to the base project directory (i.e. from where you have the project
+                       sheets organized by [year]/[proposalid].xlsx)
+  output_script_file   Path to save the generated measurement script to
+
+options:
+  -h, --help           show this help message and exit
+  -v, --verbosity      Increase output verbosity (e.g., -v for INFO, -vv for DEBUG)
+  --log_file LOG_FILE  Path to the optional logging output file
+  -V, --validate       Validate the generated script before execution
+  -c, --collate        Collate the measurements by configuration
+```
+
+Example with test spreadsheets:
+```bash
 python -m logbook2mouse logbook/Logbook_MOUSE.xlsx protocols tests/testdata/projects test_script.py
 ```
+
+### the `--collate` option
+
+When `--collate` is one of the command-line arguments `logbook2mouse`
+sorts the measurements by configuration. This option saves motor
+movements. 
+
+Note that this option will finish all measurements at each
+configuration before moving to the next, even if their series date is
+different. 
+
+For in-situ measurements avoid this option to proceed row by row. 
+
+## Protocols and protocol keyword-value combinations
+
+### the `setup.py` protocol 
+
+The `setup` protocol is prepended to the measurement script. Its role
+is to define and verify the connection to the needed EPICS PVs in the
+`required_pvs` list.
+
+Change this list to reflect your setup as needed.
+
+### measurement protocols
+
+
+
+## Data and configuration files
+
