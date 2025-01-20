@@ -44,6 +44,7 @@ move_motor("pitchgi", pitch)
 measure_at_config(
     config_no = configuration,
     entry = entry,
+    experiment = experiment,
     repetitions = int(repetitions),
     duration = 600,
 )
