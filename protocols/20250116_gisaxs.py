@@ -42,7 +42,7 @@ incident_angle_zero = epics.caget(get_address(experiment, "pitchgi"))
 pitch = incident_angle_zero - incident_angle  # pitchgi axis is reversed
 move_motor("pitchgi", pitch)
 measure_at_config(
-    config_id = configuration,
+    config_no = configuration,
     entry = entry,
     repetitions = int(repetitions),
     duration = 600,
