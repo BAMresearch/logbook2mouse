@@ -42,6 +42,7 @@ move_to_sampleposition(experiment, entry.sampleposition)
 start_z, sigma = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
                                      scan_dir)
 entry.sampleposition["zheavy"] = start_z
+print("initial zheavy center:" start_z)
 move_to_sampleposition(experiment, entry.sampleposition)
 
 # center horizontal wafer position (with blocked beam)
@@ -52,7 +53,9 @@ y_center = align.horizontal_center(experiment,
                                    entry.sampleposition,
                                    scan_dir)
 # could determine samplewidth here
-move_motor("zheavy", start_z, prefix="mc0")
+print("ysam center:" y_center)
+entry.sampleposition["ysam"] = y_center
+move_to_sampleposition(experiment, entry.sampleposition)
 
 pitch_center, center = align.pitch_align(experiment, start_z=start_z,
                                          start_pitch=0,
