@@ -15,7 +15,7 @@ if configuration is not None:
                   config_no = configuration)
 
 ymd = entry.date.strftime("%Y%m%d")
-wd = Path(work_directory(entry)) / ymd
+wd = Path(work_directory(entry))
 aligned_data =  wd / f"{ymd}_{entry.batchnum}_{1}"
 scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 

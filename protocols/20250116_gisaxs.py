@@ -17,7 +17,7 @@ incident_angle = entry.additional_parameters.get('incident_angle', 0.21)
 repetitions = entry.additional_parameters.get('repetitions', 10)
 
 ymd = entry.date.strftime("%Y%m%d")
-wd = Path(work_directory(entry)) / ymd
+wd = Path(work_directory(entry))
 aligned_data =  wd / f"{ymd}_{entry.batchnum}_{1}"
 scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 
