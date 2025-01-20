@@ -151,7 +151,7 @@ def measure_dataset(
         measure_profile(
             entry.sampleposition, store_location, experiment, mode=mode, duration=20
         )
-    move_to_sampleposition(experiment, entry)
+    move_to_sampleposition(experiment, entry.sampleposition)
     move_motor("bsr", bsr, prefix="ims")
     epics.caput("source_cu:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
