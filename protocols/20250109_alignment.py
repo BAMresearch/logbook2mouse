@@ -20,8 +20,15 @@ configuration = entry.additional_parameters.get('configuration', None)
 if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
-samplelength = entry.additional_parameters.get('samplelength', 30)
-samplewidth = entry.additional_parameters.get('samplewidth', samplelength)
+
+def get_float_parameter(entry, keyword, default):
+    value = entry.additional_parameters.get(keyword, default)
+    if type(value) == list:
+        value = value.pop()
+    return value
+
+samplelength = get_float_parameter(entry, 'samplelength', 30.)
+samplewidth = get_float_parameter(entry, 'samplewidth', samplelength)
 
 # define where to save scans
 ymd = entry.date.strftime("%Y%m%d")
