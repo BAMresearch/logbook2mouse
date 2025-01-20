@@ -66,13 +66,16 @@ pitch_center, center = align.pitch_align(experiment, start_z=start_z,
                                          halfsample=0.5*samplelength,
                                          sampleposition=entry.sampleposition,
                                          store_location=scan_dir)
+entry.sampleposition["zheavy"] = center
 move_motor("zheavy", center, prefix="mc0")
+entry.sampleposition["pitchgi"] = pitch_center
 move_motor("pitchgi", pitch_center, prefix="mc0")
 
 rolloffset = 0.9*halfsample
 roll_center = align.roll_align(experiment, y_center, sigma, 0.5*samplewidth*0.75, centerofrotation = 31,
                                sampleposition=entry.sampleposition,
                                store_location=scan_dir)
+entry.sampleposition["rollgi"] = roll_center
 
 pitch_center, center = align.pitch_align(experiment, start_z=center,
                                          start_pitch=pitch_center,
@@ -80,6 +83,10 @@ pitch_center, center = align.pitch_align(experiment, start_z=center,
                                          halfsample=halfsample,
                                          sampleposition=entry.sampleposition,
                                          store_location=scan_dir)
+entry.sampleposition["zheavy"] = center
+move_motor("zheavy", center, prefix="mc0")
+entry.sampleposition["pitchgi"] = pitch_center
+move_motor("pitchgi", pitch_center, prefix="mc0")
 logging.info(f"horizontal position pitch: {pitch_center}°")
 logging.info(f"sample surface, vertical position: {center} mm")
 
