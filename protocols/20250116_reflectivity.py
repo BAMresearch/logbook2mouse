@@ -22,11 +22,11 @@ scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 # move to aligned position
 for motor in ["ysam", "zheavy", "yawgi", "rollgi", "pitchgi"]:
     motorname, motorpos = move_motor_fromconfig(motor, imcrawfile=aligned_data/"im_craw.nxs",
-                                                prefix=get_address(motor).split(":")[0]
+                                                prefix=get_address(experiment, motor).split(":")[0]
                                                 )
     entry.sampleposition[motor] = motorpos
 
-incident_angle_zero = epics.caget(get_address("pitchgi"))
+incident_angle_zero = epics.caget(get_address(experiment, "pitchgi"))
 
 
 # scan
