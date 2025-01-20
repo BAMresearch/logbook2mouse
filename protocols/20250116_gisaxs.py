@@ -9,11 +9,19 @@ from logbook2mouse.experiment import get_address
 from pathlib import Path
 import epics
 
+def get_float_parameter(entry, keyword, default):
+    value = entry.additional_parameters.get(keyword, default)
+    if type(value) == str:
+        value = float(value)
+    return value
+
 configuration = entry.additional_parameters.get('configuration', None)
 if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
-incident_angle = entry.additional_parameters.get('incident_angle', 0.21)
+
+
+incident_angle = get_float_parameter(entry, 'incident_angle', 0.21)
 repetitions = entry.additional_parameters.get('repetitions', 10)
 
 ymd = entry.date.strftime("%Y%m%d")
