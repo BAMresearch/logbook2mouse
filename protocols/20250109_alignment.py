@@ -23,8 +23,8 @@ if configuration is not None:
 
 def get_float_parameter(entry, keyword, default):
     value = entry.additional_parameters.get(keyword, default)
-    if type(value) == list:
-        value = value.pop()
+    if type(value) == str:
+        value = float(value)
     return value
 
 samplelength = get_float_parameter(entry, 'samplelength', 30.)
