@@ -5,6 +5,7 @@ from logbook2mouse.measure_config import (
     measure_at_config)
 from logbook2mouse.file_management import work_directory
 import mouse_alignment_routines.alignment as align
+import mouse_alignment_routines.transmission_models as transmission_models
 from pathlib import Path
 import os
 
@@ -39,7 +40,9 @@ move_to_sampleposition(experiment, entry.sampleposition)
 # does this also set the sample name? Don't think so
 
 # initial value for vertical position
+zheavymodel = transmission_models.ZheavyModel()
 start_z, sigma = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
+                                     zheavymodel,
                                      scan_dir)
 entry.sampleposition["zheavy"] = start_z
 print("initial zheavy center:", start_z)
@@ -71,8 +74,10 @@ move_motor("zheavy", center, prefix="mc0")
 entry.sampleposition["pitchgi"] = pitch_center
 move_motor("pitchgi", pitch_center, prefix="mc0")
 
-roll_center = align.roll_align(experiment, y_center, sigma, 0.5*samplewidth*0.75, centerofrotation = 31,
+
+roll_center = align.roll_align(experiment, y_center, sigma, 0.5*samplewidth*0.75, centerofrotation = 40,
                                sampleposition=entry.sampleposition,
+                               zheavymodel=zheavymodel,
                                store_location=scan_dir)
 entry.sampleposition["rollgi"] = roll_center
 
