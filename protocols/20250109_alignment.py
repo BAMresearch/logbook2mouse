@@ -41,9 +41,9 @@ move_to_sampleposition(experiment, entry.sampleposition)
 
 # initial value for vertical position
 zheavymodel = transmission_models.ZheavyModel()
-start_z, sigma = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
-                                     zheavymodel,
-                                     scan_dir)
+start_z, sigma, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
+                                                  zheavymodel,
+                                                  scan_dir)
 entry.sampleposition["zheavy"] = start_z
 print("initial zheavy center:", start_z)
 move_to_sampleposition(experiment, entry.sampleposition)
