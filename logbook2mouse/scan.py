@@ -5,7 +5,7 @@ import epics
 from csv import DictWriter
 from pathlib import Path
 import numpy as np
-import os
+import os, time
 
 
 
@@ -59,6 +59,8 @@ def scan(motorname, scan_start, scan_end, npoints,
                         mode="scan",
                         duration=seconds)
 
+        time.sleep(.2)  # hopefully ensuring we get the transmission
+        # corresponding to the latest file
         transmission = epics.caget(transmission_addr)
         with open(scan_csv, "a", newline = "") as current_file:
             writer = DictWriter(current_file,
