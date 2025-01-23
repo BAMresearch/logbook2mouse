@@ -179,7 +179,7 @@ class Logbook2MouseReader:
         if projectID in self._preloaded_projects:
             project = self._preloaded_projects[projectID]
         else:
-            print(f"Reading project {projectID}")
+            # print(f"Reading project {projectID}")
             # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
             project_file = self.project_base_path /f"{projectID[:4]}"/ f"{projectID}.xlsx"
             if project_file.is_file():
