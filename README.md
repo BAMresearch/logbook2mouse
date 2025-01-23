@@ -87,7 +87,52 @@ Change this list to reflect your setup as needed.
 
 ### measurement protocols
 
+The measurement protocols are python scripts in the `protocols_directory`.
 
+Within them, you have access to the information encoded in each line
+of the logbook encoded in `entry` of type `Logbook2MouseEntry`, as
+well as the EPICS PVs in `required_pvs`.
+
+Flexibility is introduced via the last columns in the logbook, the
+"Protocol keyword-value combinations". These are available via the dictionary
+`entry.additional_parameters` as:
+```python
+configuration = entry.additional_parameters.get('configuration', None)
+```
+Keep in mind that the values returned are strings.
+
+In terms of scattering experiments, the main functions you'll likely need are:
+```python
+from logbook2mouse.measure_config import measure_at_config
+
+measure_at_config(config_no = configuration,
+                  entry = entry,
+                  experiment = experiment,
+                  duration=600,  # default: 600
+                  repetitions=10, # default depends on config_no
+                  )
+```
+
+This includes a blank and a transmission measurement.
+
+A simple exposure (no blank and transmission) would be:
+```python
+from logbook2mouse.measure_config import moveto_config
+from logbook2mouse.detector import measurement
+
+moveto_config(experiment.required_pvs, config_no = configuration)
+measurement(experiment, duration = 600, store_location = "/path/to/store_loc")
+
+```
+
+The store location defaults to the working directory and its
+existence is required.
 
 ## Data and configuration files
 
+For the moment, data save paths and the (instrument) configuration load path are hard-coded.
+- Data is stored in `Path.home() / "data" / year / yyyymmdd` based on the measurement date in the logbook.
+- Configurations are `[0-9].nxs` files in `Path.home() /
+  "data/configurations"`, where the motor positions that define your
+  configuration should be stored at `f"/saxs/Saxslab/{motorname}"` and
+  the file name should be a number (this may change in the future).
