@@ -74,8 +74,8 @@ move_motor("zheavy", center, prefix="mc0")
 entry.sampleposition["pitchgi"] = pitch_center
 move_motor("pitchgi", pitch_center, prefix="mc0")
 
-
-roll_center, new_z = align.roll_align(experiment, y_center, sigma, 0.5*samplewidth*0.5, centerofrotation = 40,
+roll_offset = 3 # mm - otherwise it won't work with GI4
+roll_center, new_z = align.roll_align(experiment, y_center, sigma, roll_offset, centerofrotation = 40,
                                sampleposition=entry.sampleposition,
                                zheavymodel=zheavymodel,
                                store_location=scan_dir)
