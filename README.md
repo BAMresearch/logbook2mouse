@@ -117,10 +117,12 @@ This includes a blank and a transmission measurement.
 
 A simple exposure (no blank and transmission) would be:
 ```python
-from logbook2mouse.measure_config import moveto_config
+from logbook2mouse.measure_config import moveto_config, move_to_sampleposition
 from logbook2mouse.detector import measurement
 
 moveto_config(experiment.required_pvs, config_no = configuration)
+move_to_sampleposition(experiment, entry, blank = False)  # if blank, it will move
+                                                          # to the positions motor.blank
 measurement(experiment, duration = 600, store_location = "/path/to/store_loc")
 
 ```
