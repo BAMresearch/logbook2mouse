@@ -41,16 +41,21 @@ move_to_sampleposition(experiment, entry.sampleposition)
 
 # initial value for vertical position
 zheavymodel = transmission_models.ZheavyModel()
-start_z, sigma, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
-                                                  zheavymodel,
-                                                  scan_dir)
+pitchmodel = transmission_models.ZheavyModel()
+res, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
+                                       zheavymodel,
+                                       scan_dir)
+start_z = res["center"]
+beam_sigma = res["sigma"]
 entry.sampleposition["zheavy"] = start_z
+zheavymodel.parameters["center"].set(value = start_z)
+zheavymodel.parameters["sigma"].set(value = beam_sigma)
 print("initial zheavy center:", start_z)
 move_to_sampleposition(experiment, entry.sampleposition)
 
 # center horizontal wafer position (with blocked beam)
 entry.sampleposition["zheavy"] = start_z + 0.5
-move_motor("zheavy", start_z + 0.5, prefix="mc0")
+move_to_sampleposition(experiment, entry.sampleposition)
 y_center = align.horizontal_center(experiment,
                                    (-0.5*samplewidth*1.25,
                                     +0.5*samplewidth*1.25), 31,
@@ -63,16 +68,13 @@ print("ysam center:", y_center)
 entry.sampleposition["ysam"] = y_center
 move_to_sampleposition(experiment, entry.sampleposition)
 
-pitch_center, center = align.pitch_align(experiment, start_z=start_z,
-                                         start_pitch=0,
-                                         sigma_beam=sigma,
-                                         halfsample=0.5*samplelength,
-                                         sampleposition=entry.sampleposition,
-                                         store_location=scan_dir)
-entry.sampleposition["zheavy"] = center
-move_motor("zheavy", center, prefix="mc0")
-entry.sampleposition["pitchgi"] = pitch_center
-move_motor("pitchgi", pitch_center, prefix="mc0")
+sampleposition, zheavymodel, pitchmodel = align.pitch_align(experiment,
+                                                            zheavymodel, pitchmodel, 
+                                                            halfsample=0.5*samplelength,
+                                                            sampleposition=entry.sampleposition,
+                                                            store_location=scan_dir)
+entry.sampleposition = sampleposition
+move_to_sampleposition(experiment, entry.sampleposition)
 
 roll_offset = 3 # mm - otherwise it won't work with GI4
 roll_center, new_z = align.roll_align(experiment, y_center, sigma, roll_offset,
@@ -82,19 +84,19 @@ roll_center, new_z = align.roll_align(experiment, y_center, sigma, roll_offset,
                                       store_location=scan_dir)
 entry.sampleposition["rollgi"] = roll_center
 entry.sampleposition["zheavy"] = entry.sampleposition["zheavy"] + new_z
+move_to_sampleposition(experiment, entry.sampleposition)
 
-pitch_center, center = align.pitch_align(experiment, start_z=center,
-                                         start_pitch=pitch_center,
-                                         sigma_beam=sigma,
-                                         halfsample=0.5*samplelength,
-                                         sampleposition=entry.sampleposition,
-                                         store_location=scan_dir)
-entry.sampleposition["zheavy"] = center
-move_motor("zheavy", center, prefix="mc0")
-entry.sampleposition["pitchgi"] = pitch_center
-move_motor("pitchgi", pitch_center, prefix="mc0")
+sampleposition, zheavymodel, pitchmodel = align.pitch_align(experiment,
+                                                            zheavymodel, pitchmodel, 
+                                                            halfsample=0.5*samplelength,
+                                                            sampleposition=entry.sampleposition,
+                                                            store_location=scan_dir)
+entry.sampleposition = sampleposition
+move_to_sampleposition(experiment, entry.sampleposition)
+
 logging.info(f"horizontal position pitch: {pitch_center}°")
 logging.info(f"sample surface, vertical position: {center} mm")
+move_to_sampleposition(experiment, entry.sampleposition)
 
 # measure once at this position - this should make the first measurement of each sample the reference
 if configuration is not None:
