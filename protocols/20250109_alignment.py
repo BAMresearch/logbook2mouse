@@ -77,7 +77,7 @@ entry.sampleposition = sampleposition
 move_to_sampleposition(experiment, entry.sampleposition)
 
 roll_offset = 3 # mm - otherwise it won't work with GI4
-roll_center, new_z = align.roll_align(experiment, y_center, sigma, roll_offset,
+roll_center, new_z = align.roll_align(experiment, y_center, beam_sigma, roll_offset,
                                       centerofrotation = 37.3376,
                                       sampleposition=entry.sampleposition,
                                       zheavymodel=zheavymodel,
