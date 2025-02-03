@@ -28,3 +28,10 @@ experiment = ExperimentVariables(required_pvs)
 move_motor("detx", 400, prefix = "ims")
 epics.caput("portenta:do7", 0)
 epics.caput("portenta:do6", 1)
+
+pressure = epics.caget("pressure_gauge:pressure")
+while pressure > 1:
+    sleep(3)
+    pressure = epics.caget("pressure_gauge:pressure")
+    print("current pressure:", pressure)
+
