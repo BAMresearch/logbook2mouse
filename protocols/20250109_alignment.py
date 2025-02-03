@@ -94,8 +94,8 @@ sampleposition, zheavymodel, pitchmodel = align.pitch_align(experiment,
 entry.sampleposition = sampleposition
 move_to_sampleposition(experiment, entry.sampleposition)
 
-logging.info(f"horizontal position pitch: {pitch_center}°")
-logging.info(f"sample surface, vertical position: {center} mm")
+logging.info(f"horizontal position pitch: {entry.sampleposition['pitchgi']}°")
+logging.info(f"sample surface, vertical position: {entry.sampleposition['zheavy']} mm")
 move_to_sampleposition(experiment, entry.sampleposition)
 
 # measure once at this position - this should make the first measurement of each sample the reference
