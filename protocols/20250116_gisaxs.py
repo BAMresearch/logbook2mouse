@@ -24,7 +24,7 @@ if configuration is not None:
 incident_angle = get_float_parameter(entry, 'incident_angle', 0.21)
 repetitions = entry.additional_parameters.get('repetitions', None)
 if repetitions is not None:
-    repetitions = int(repetitions)
+    repetitions = int(float(repetitions))
 
 ymd = entry.date.strftime("%Y%m%d")
 wd = Path(work_directory(entry))
