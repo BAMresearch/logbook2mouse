@@ -8,7 +8,7 @@ logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entr
 configuration = int(entry.additional_parameters.get('configuration', 125))
 repetitions = entry.additional_parameters.get('repetitions', None)
 if repetitions is not None:
-    repetitions = int(repetitions)
+    repetitions = int(float(repetitions))
 # else:  # specify configuration manually here
 
 # Simulate starting the measurement
