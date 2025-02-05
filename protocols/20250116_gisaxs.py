@@ -41,8 +41,10 @@ for motor in ["ysam", "zheavy", "yawgi", "rollgi", "pitchgi"]:
 incident_angle_zero = epics.caget(get_address(experiment, "pitchgi"))
 
 # move to requested angle and measure
-pitch = incident_angle_zero - incident_angle  # pitchgi axis is reversed
+pitch = float(incident_angle_zero) - float(incident_angle)  # pitchgi axis is reversed
 move_motor("pitchgi", pitch)
+entry.sampleposition["pitchgi"] = float(pitch)
+
 measure_at_config(
     config_no = configuration,
     entry = entry,
