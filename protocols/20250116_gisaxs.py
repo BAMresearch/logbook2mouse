@@ -20,7 +20,9 @@ if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
 
+alignment_batch = entry.additional_parameters.get('alignment_batch', entry.batchnum)
 
+    
 incident_angle = get_float_parameter(entry, 'incident_angle', 0.21)
 repetitions = entry.additional_parameters.get('repetitions', None)
 if repetitions is not None:
@@ -28,7 +30,7 @@ if repetitions is not None:
 
 ymd = entry.date.strftime("%Y%m%d")
 wd = Path(work_directory(entry))
-aligned_data =  wd / f"{ymd}_{entry.batchnum}_{1}"
+aligned_data =  wd / f"{ymd}_{alignment_batch}_{1}"
 scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 
 # move to aligned position
