@@ -40,7 +40,7 @@ move_to_sampleposition(experiment, entry.sampleposition)
 # does this also set the sample name? Don't think so
 
 # initial value for vertical position
-zheavymodel = transmission_models.ZheavyModel()
+zheavymodel = transmission_models.ZheavyModel(center=entry.sampleposition["zheavy"])
 pitchmodel = transmission_models.PitchModel()
 res, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31, entry.sampleposition,
                                        zheavymodel,
