@@ -83,8 +83,11 @@ roll_center, new_z = align.roll_align(experiment, y_center, beam_sigma, roll_off
                                       zheavymodel=zheavymodel,
                                       store_location=scan_dir)
 entry.sampleposition["rollgi"] = roll_center
-entry.sampleposition["zheavy"] = entry.sampleposition["zheavy"] + new_z
 move_to_sampleposition(experiment, entry.sampleposition)
+res, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31,
+                                 entry.sampleposition, zheavymodel, scan_dir)
+entry.sampleposition["zheavy"] = res["center"]
+
 
 sampleposition, zheavymodel, pitchmodel = align.pitch_align(experiment,
                                                             zheavymodel, pitchmodel, 
