@@ -50,8 +50,8 @@ def scan(motorname, scan_start, scan_end, npoints,
                              current_pos + scan_end,
                              npoints):
 
-        move_motor(motorname, position = point, prefix = prefix,
-                   parrot_prefix = experiment.parrot_prefix)
+        actual_pos = move_motor(motorname, position = point, prefix = prefix,
+                                parrot_prefix = experiment.parrot_prefix)
 
         store_point = store_location / f"scan_{counter}"
         counter += 1
@@ -65,7 +65,7 @@ def scan(motorname, scan_start, scan_end, npoints,
         with open(scan_csv, "a", newline = "") as current_file:
             writer = DictWriter(current_file,
                                 fieldnames = ["point", "value"])
-            writer.writerow({"point": point, "value": transmission})
+            writer.writerow({"point": actual_pos, "value": transmission})
 
     epics.caput("source_cu:shutter", 0, wait=True)
     # move back to initial position
