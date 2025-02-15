@@ -14,7 +14,7 @@ if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
 
-alignment_batch = entry.additional_parameters.get('alignment_batch', entry.batchnum)
+alignment_batch = int(entry.additional_parameters.get('alignment_batch', entry.batchnum))
 
 ymd = entry.date.strftime("%Y%m%d")
 wd = Path(work_directory(entry))
