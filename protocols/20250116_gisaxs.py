@@ -20,7 +20,7 @@ if configuration is not None:
     moveto_config(experiment.required_pvs,
                   config_no = configuration)
 
-alignment_batch = int(entry.additional_parameters.get('alignment_batch', entry.batchnum))
+alignment_batch = int(float(entry.additional_parameters.get('alignment_batch', entry.batchnum)))
 
     
 incident_angle = get_float_parameter(entry, 'incident_angle', 0.21)
