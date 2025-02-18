@@ -218,7 +218,7 @@ def measure_at_config(
 
 def standard_configurations(keyword: str = "standard"):
     if keyword == "standard":
-        configurations = [150, 151, 152, 153, 154, 155, 156, 123, 125, 127]
+        configurations = [160, 161, 162, 163, 164, 165, 166, 123, 125, 127]
     elif keyword == "capillary":
         configurations = [110, 123, 125, 127]
     else:
