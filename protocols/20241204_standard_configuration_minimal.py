@@ -6,6 +6,7 @@ logging.info(f'Starting entry for logbook row {entry.row_index}, sampleID: {entr
 
 # Configurations to measure
 configuration = int(entry.additional_parameters.get('configuration', 125))
+duration = int(float(entry.additional_parameters.get('duration', 600)))
 repetitions = entry.additional_parameters.get('repetitions', None)
 if repetitions is not None:
     repetitions = int(float(repetitions))
@@ -18,6 +19,6 @@ print(f"Starting measurement for sample {entry.proposal}-{entry.sampleid} in con
 measure_at_config(config_no = configuration,
                   entry = entry,
                   experiment = experiment,
-                  duration=600,  # default: 600
+                  duration=duration,  # default: 600
                   repetitions=repetitions  # default: determined by config number
                   )

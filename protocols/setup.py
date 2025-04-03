@@ -3,7 +3,7 @@
 import logging
 logger = logging.getLogger("measurement")
 logger.setLevel(logging.INFO)
-from epics import caget
+from epics import caget, caput
 from pandas import Timestamp
 import logbook2mouse.detector as detector
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
@@ -37,10 +37,11 @@ required_pvs = [
     'ims:bsr',
     'ims:bsz',
     'source_cu:shutter',
-    'detector_eiger:DetectorState',
-    'pressure_gauge:pressure',
-    'pa0:sample:proposal',
-    'image:ratio',
+    'detector_eiger:DetectorState',  # detector control
+    'pressure_gauge:pressure',  # chamber pressure sensor
+    'portenta:t0', 'portenta:t1',  # temperature sensors
+    'pa0:sample:proposal',  # metadata server aka parrot
+    'image:ratio',  # image analysis ioc
 ]
 
 # check that the PVs are reachable before we execute a script:

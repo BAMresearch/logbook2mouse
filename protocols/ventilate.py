@@ -1,5 +1,5 @@
 # this code gets run at the start of every script (not at the start of every entry, but the whole script)
-# use this code to check PVs, generators, etc.
+# use this code to check PVs, generators, etc. 
 import logging
 logger = logging.getLogger("measurement")
 logger.setLevel(logging.INFO)
@@ -27,11 +27,14 @@ for pv in required_pvs:
 experiment = ExperimentVariables(required_pvs)
 
 move_motor("detx", 400, prefix = "ims")
-epics.caput("portenta:do7", 0)
-epics.caput("portenta:do6", 1)
+epics.caput("portenta:do6", 0)
+sleep(1)
+epics.caput("portenta:do7", 1)
 
 pressure = epics.caget("pressure_gauge:pressure")
-while pressure > 1:
-    sleep(3)
+while pressure < 1e3:
+    sleep(1)
     pressure = epics.caget("pressure_gauge:pressure")
     print("current pressure:", pressure)
+
+epics.caput("portenta:do7", 0)

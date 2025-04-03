@@ -49,6 +49,11 @@ class Logbook2MouseEntry:
     project: Optional[ProjectInfo] = attrs.field(default=None)
     sample: Optional[Sample] = attrs.field(default=None)
     sampleposition: Optional[Dict[str, float]] = attrs.field(default=None)
+    ymd: Optional[str] = attrs.field(default = None)
+
+    def __attrs_post_init__(self):
+        if self.ymd is None:
+            self.ymd = self.date.strftime("%Y%m%d")
 
     @classmethod
     def from_series(cls, series: pd.Series):
@@ -175,7 +180,7 @@ class Logbook2MouseReader:
         if projectID in self._preloaded_projects:
             project = self._preloaded_projects[projectID]
         else:
-            print(f"Reading project {projectID}")
+            # print(f"Reading project {projectID}")
             # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
             project_file = self.project_base_path /f"{projectID[:4]}"/ f"{projectID}.xlsx"
             if project_file.is_file():

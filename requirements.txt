@@ -2,3 +2,5 @@ pandas
 attrs
 openpyxl
 pyepics
+periodictable
+xraydb

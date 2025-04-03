@@ -38,5 +38,103 @@ Stick to a single representative value when you can. Again, use a reasonable est
 ## Usage
 
 ```bash
+usage: __main__.py [-h] [-v] [--log_file LOG_FILE] [-V] [-c]
+                   logbook_file protocols_directory project_base_path output_script_file
+
+Logbook to Measurement Script Generator
+
+positional arguments:
+  logbook_file         Path to the logbook Excel file
+  protocols_directory  Path to the directory containing protocol files
+  project_base_path    Path to the base project directory (i.e. from where you have the project
+                       sheets organized by [year]/[proposalid].xlsx)
+  output_script_file   Path to save the generated measurement script to
+
+options:
+  -h, --help           show this help message and exit
+  -v, --verbosity      Increase output verbosity (e.g., -v for INFO, -vv for DEBUG)
+  --log_file LOG_FILE  Path to the optional logging output file
+  -V, --validate       Validate the generated script before execution
+  -c, --collate        Collate the measurements by configuration
+```
+
+Example with test spreadsheets:
+```bash
 python -m logbook2mouse logbook/Logbook_MOUSE.xlsx protocols tests/testdata/projects test_script.py
 ```
+
+### the `--collate` option
+
+When `--collate` is one of the command-line arguments `logbook2mouse`
+sorts the measurements by configuration. This option saves motor
+movements. 
+
+Note that this option will finish all measurements at each
+configuration before moving to the next, even if their series date is
+different. 
+
+For in-situ measurements avoid this option to proceed row by row. 
+
+## Protocols and protocol keyword-value combinations
+
+### the `setup.py` protocol 
+
+The `setup` protocol is prepended to the measurement script. Its role
+is to define and verify the connection to the needed EPICS PVs in the
+`required_pvs` list.
+
+Change this list to reflect your setup as needed.
+
+### measurement protocols
+
+The measurement protocols are python scripts in the `protocols_directory`.
+
+Within them, you have access to the information encoded in each line
+of the logbook encoded in `entry` of type `Logbook2MouseEntry`, as
+well as the EPICS PVs in `required_pvs`.
+
+Flexibility is introduced via the last columns in the logbook, the
+"Protocol keyword-value combinations". These are available via the dictionary
+`entry.additional_parameters` as:
+```python
+configuration = entry.additional_parameters.get('configuration', None)
+```
+Keep in mind that the values returned are strings.
+
+In terms of scattering experiments, the main functions you'll likely need are:
+```python
+from logbook2mouse.measure_config import measure_at_config
+
+measure_at_config(config_no = configuration,
+                  entry = entry,
+                  experiment = experiment,
+                  duration=600,  # default: 600
+                  repetitions=10, # default depends on config_no
+                  )
+```
+
+This includes a blank and a transmission measurement.
+
+A simple exposure (no blank and transmission) would be:
+```python
+from logbook2mouse.measure_config import moveto_config, move_to_sampleposition
+from logbook2mouse.detector import measurement
+
+moveto_config(experiment.required_pvs, config_no = configuration)
+move_to_sampleposition(experiment, entry, blank = False)  # if blank, it will move
+                                                          # to the positions motor.blank
+measurement(experiment, duration = 600, store_location = "/path/to/store_loc")
+
+```
+
+The store location defaults to the working directory and its
+existence is required.
+
+## Data and configuration files
+
+For the moment, data save paths and the (instrument) configuration load path are hard-coded.
+- Data is stored in `Path.home() / "data" / year / yyyymmdd` based on the measurement date in the logbook.
+- Configurations are `[0-9].nxs` files in `Path.home() /
+  "data/configurations"`, where the motor positions that define your
+  configuration should be stored at `f"/saxs/Saxslab/{motorname}"` and
+  the file name should be a number (this may change in the future).
