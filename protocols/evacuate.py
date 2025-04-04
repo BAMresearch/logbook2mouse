@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger("measurement")
 logger.setLevel(logging.INFO)
 import epics
+from time import sleep
 from pandas import Timestamp
 from periodictable import formula
 from logbook2mouse.experiment import ExperimentVariables
@@ -34,4 +35,3 @@ while pressure > 1:
     sleep(3)
     pressure = epics.caget("pressure_gauge:pressure")
     print("current pressure:", pressure)
-

@@ -15,7 +15,10 @@ from logbook2mouse.experiment import ExperimentVariables
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
 required_pvs = [
     'mc0:ysam',
-    'mc0:zsam',
+    'mc0:zheavy',
+    'mc0:yawgi',
+    'mc0:rollgi',
+    'mc0:pitchgi',
     'ims:detx',
     'ims:dety',
     'ims:detz',

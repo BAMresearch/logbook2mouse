@@ -5,6 +5,7 @@ import h5py
 from math import isclose
 import logging
 from shutil import copy
+from typing import Dict, List, Optional
 import caproto.threading.pyepics_compat as epics
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
@@ -36,9 +37,9 @@ def move_motor(
     epics.caput(parrot_pv, actual_value)
     return actual_value
 
-def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = False):
+def move_to_sampleposition(experiment, sampleposition: Dict[str, float], blank: bool = False):
     """Move the motors according to the sample position entries."""
-    for motor in entry.sampleposition.keys():
+    for motor in sampleposition.keys():
         addr = None  # some like xsam don't exist
         if "blank" in motor:
             motorname = motor.rstrip(".blank")
@@ -48,10 +49,10 @@ def move_to_sampleposition(experiment, entry: Logbook2MouseEntry, blank: bool = 
         if addr is not None:  # xsam can't be moved
             if blank:
                 if "blank" in motor:
-                    move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+                    move_motor(motorname, sampleposition[motor], prefix=addr.split(":")[0])
             else:
                 if "blank" not in motor:
-                    move_motor(motorname, entry.sampleposition[motor], prefix=addr.split(":")[0])
+                    move_motor(motorname, sampleposition[motor], prefix=addr.split(":")[0])
 
 
 
@@ -107,7 +108,7 @@ def robust_caput(pv, value, timeout=5):
 
 
 def measure_profile(
-    entry,
+    sampleposition,
     store_location,
     experiment,
     mode="blank",
@@ -115,22 +116,29 @@ def measure_profile(
 ):
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
-        # to do: determine motors from pvs, or logbook
-        move_to_sampleposition(experiment, entry, blank = True)
+        move_to_sampleposition(experiment, sampleposition, blank = True)
         beamprofilepath = store_location / "beam_profile"
         os.makedirs(beamprofilepath, exist_ok = True)
-    else:
-        move_to_sampleposition(experiment, entry)
+    elif mode == "sample":
+        move_to_sampleposition(experiment, sampleposition)
         beamprofilepath = store_location / "beam_profile_through_sample"
         os.makedirs(beamprofilepath, exist_ok = True)
-    epics.caput("source_cu:shutter", 1, wait=True)
+    elif mode == "scan":
+        # do not move
+        beamprofilepath = store_location
+        os.makedirs(beamprofilepath, exist_ok = True)
+    else:
+        raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
+
+    if mode in ["blank", "sample"]:
+        epics.caput("source_cu:shutter", 1, wait=True)
     detector.measurement(
         experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
-
-    epics.caput("source_cu:shutter", 0, wait=True)
+    if mode in ["blank", "sample"]:
+        epics.caput("source_cu:shutter", 0, wait=True)
 
     # communicate to image processing ioc which expects the _data_*h5 files
     for fname in beamprofilepath.glob("*data*.h5"):
@@ -152,9 +160,9 @@ def measure_dataset(
     move_motor("bsr", 270, prefix=bsr_addr.split(":")[0])
     for mode in ["blank", "sample"]:
         measure_profile(
-            entry, store_location, experiment, mode=mode, duration=20
+            entry.sampleposition, store_location, experiment, mode=mode, duration=20
         )
-    move_to_sampleposition(experiment, entry)
+    move_to_sampleposition(experiment, entry.sampleposition)
     move_motor("bsr", bsr, prefix="ims")
     epics.caput("source_cu:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)

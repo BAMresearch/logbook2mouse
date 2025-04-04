@@ -7,6 +7,11 @@ setup(
     install_requires=[
         'pandas',
         'attrs',
-        'openpyxl'
+        'openpyxl',
+        'h5py',
+        'hdf5plugin',
+        'pyepics',
+        'periodictable',
+        'xraydb',
     ],
 )
