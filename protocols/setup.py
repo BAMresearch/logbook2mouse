@@ -52,3 +52,6 @@ for pv in required_pvs:
         raise ConnectionError(f"PV '{pv}' is not reachable or has no value.")
 
 experiment = ExperimentVariables(required_pvs)
+
+# ensure motor positions are at least checked at the beginning of a measurement
+caput("pa0:config:config_id", 999)
