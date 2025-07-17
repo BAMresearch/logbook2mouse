@@ -53,7 +53,7 @@ def environment2parrot(experiment):
             f"{experiment.parrot_prefix}:environment:stage_temperature", temperature1
         )
     # X-ray source identified by config id
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
 
     shutter_data = epics.caget(f"{source_name}:shutter", as_string=True)
     epics.caput(

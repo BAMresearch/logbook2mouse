@@ -137,7 +137,7 @@ def measure_profile(
     else:
         raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
 
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
     if mode in ["blank", "sample"]:
         epics.caput(f"{source_name}:shutter", 1, wait=True)
     detector.measurement(
@@ -172,7 +172,7 @@ def measure_dataset(
         )
     move_to_sampleposition(experiment, entry.sampleposition)
     move_motor("bsr", bsr, prefix="ims")
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
     epics.caput(f"{source_name}:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     detector.measurement(

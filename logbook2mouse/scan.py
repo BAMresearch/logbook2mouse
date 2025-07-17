@@ -45,7 +45,7 @@ def scan(motorname, scan_start, scan_end, npoints,
     # get pv address of transmission / image ratio
     transmission_addr = get_address(experiment, "ratio")
     counter = 0
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
     epics.caput(f"{source_name}:shutter", 1, wait=True)
     for point in np.linspace(current_pos + scan_start,
                              current_pos + scan_end,
