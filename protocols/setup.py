@@ -37,7 +37,8 @@ required_pvs = [
     'ims:s3hr',
     'ims:bsr',
     'ims:bsz',
-    'source_cu:shutter',
+    # 'source_cu:shutter',  # uncomment once the source is repaired
+    'source_mo:shutter',
     'detector_eiger:DetectorState',  # detector control
     'pressure_gauge:pressure',  # chamber pressure sensor
     'portenta:t0', 'portenta:t1',  # temperature sensors
