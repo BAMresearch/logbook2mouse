@@ -239,7 +239,7 @@ def write_meta_nxs(store_location, parrot_prefix: str = "pa0"):
             dataset = f[f"/saxs/Saxslab/{bsmotor}"]
             dataset[...] = detdata
 
-        dualdata = epics.caget(f"{parrot_prefix}:config:dual")
+        dualdata = epics.caget(f"{parrot_prefix}:environment:motors:dual")
         dataset = f[f"/saxs/Saxslab/dual"]
         dataset[...] = dualdata
 
