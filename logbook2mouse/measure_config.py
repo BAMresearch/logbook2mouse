@@ -95,6 +95,13 @@ def moveto_config(
             )
 
     epics.caput(f"{parrot_prefix}:config:config_id", config_no)
+    if str(config_id).startswith("1"):
+        source_name = "source_cu"
+    elif str(config_id).startswith("2"):
+        source_name = "source_mo"
+    else:
+        raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
+    epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)
     return
 
 
@@ -130,15 +137,16 @@ def measure_profile(
     else:
         raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
 
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
     if mode in ["blank", "sample"]:
-        epics.caput("source_cu:shutter", 1, wait=True)
+        epics.caput(f"{source_name}:shutter", 1, wait=True)
     detector.measurement(
         experiment,
         duration=duration,
         store_location=beamprofilepath,
     )
     if mode in ["blank", "sample"]:
-        epics.caput("source_cu:shutter", 0, wait=True)
+        epics.caput(f"{source_name}:shutter", 0, wait=True)
 
     # communicate to image processing ioc which expects the _data_*h5 files
     for fname in beamprofilepath.glob("*data*.h5"):
@@ -164,7 +172,8 @@ def measure_dataset(
         )
     move_to_sampleposition(experiment, entry.sampleposition)
     move_motor("bsr", bsr, prefix="ims")
-    epics.caput("source_cu:shutter", 1, wait=True)
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
+    epics.caput(f"{source_name}:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     detector.measurement(
         experiment, duration=duration, store_location=store_location
@@ -173,7 +182,7 @@ def measure_dataset(
     for fname in store_location.glob("*data*.h5"):
         copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
 
-    epics.caput("source_cu:shutter", 0, wait=True)
+    epics.caput(f"{source_name}:shutter", 0, wait=True)
 
 def measure_at_config(
     config_no: int,

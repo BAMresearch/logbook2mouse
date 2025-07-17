@@ -52,12 +52,8 @@ def environment2parrot(experiment):
         epics.caput(
             f"{experiment.parrot_prefix}:environment:stage_temperature", temperature1
         )
-    # X-ray source
-    if "source_cu:shutter" in experiment.required_pvs:
-        source_name = "source_cu"
-    else:
-        source_name = "source_mo"
-    epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)
+    # X-ray source identified by config id
+    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source")
 
     shutter_data = epics.caget(f"{source_name}:shutter", as_string=True)
     epics.caput(
