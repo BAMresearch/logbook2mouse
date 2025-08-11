@@ -4,6 +4,7 @@ from logbook2mouse.measure_config import (
     move_motor, move_to_sampleposition, moveto_config,
     measure_at_config)
 from logbook2mouse.file_management import work_directory
+from logbook2mouse.scan import scan
 import mouse_alignment_routines.alignment as align
 import mouse_alignment_routines.transmission_models as transmission_models
 from pathlib import Path
@@ -88,6 +89,11 @@ res, zheavymodel = align.zheavy_center(experiment, (-1.0, 1.0), 31,
                                  entry.sampleposition, zheavymodel, scan_dir)
 entry.sampleposition["zheavy"] = res["center"]
 
+# test roll alignment - transmission should be a constant 0.5 ideally
+move_to_sampleposition(experiment, entry.sampleposition)
+scan("ysam", entry.sampleposition["ysam"] - roll_offset,
+     entry.sampleposition["ysam"] + roll_offset, 31, 1, experiment, entry.sampleposition,
+     store_location=scan_dir)
 
 sampleposition, zheavymodel, pitchmodel = align.pitch_align(experiment,
                                                             zheavymodel, pitchmodel, 
