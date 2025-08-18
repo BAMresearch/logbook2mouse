@@ -101,7 +101,7 @@ def moveto_config(
         source_name = "source_mo"
     else:
         raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
-    epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)
+    epics.caput(f"{parrot_prefix}:config:source", source_name)
     return
 
 
