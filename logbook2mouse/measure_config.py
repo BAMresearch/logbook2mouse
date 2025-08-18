@@ -95,9 +95,9 @@ def moveto_config(
             )
 
     epics.caput(f"{parrot_prefix}:config:config_id", config_no)
-    if str(config_id).startswith("1"):
+    if str(config_no).startswith("1"):
         source_name = "source_cu"
-    elif str(config_id).startswith("2"):
+    elif str(config_no).startswith("2"):
         source_name = "source_mo"
     else:
         raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
