@@ -70,14 +70,13 @@ def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
 
 
 def moveto_config(
-    required_pvs,
+    experiment,
     config_path: Path = Path.home() / "data/configurations",
     config_no: int = 110,
-    parrot_prefix: str = "pa0",
 ):
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     # don't move at all if we are at this config according to parrot
-    latest_config = int(epics.caget(f"{parrot_prefix}:config:config_id"))
+    latest_config = int(epics.caget(f"{experiment.parrot_prefix}:config:config_id"))
     if latest_config == config_no:
         # exit without moving
         return
@@ -87,21 +86,25 @@ def moveto_config(
         raise FileNotFoundError(f"File {configfile} does not exist.")
 
     pvs_to_move = ["ims"]  # only move motors on ims, i.e. not sample motors
-    for pv in required_pvs:
+    for pv in experiment.required_pvs:
         if any(substr in pv for substr in pvs_to_move):
             prefix, motorname = pv.split(":")
             name, position = move_motor_fromconfig(
                 motorname, imcrawfile=configfile, prefix=prefix
             )
 
-    epics.caput(f"{parrot_prefix}:config:config_id", config_no)
+    epics.caput(f"{experiment.parrot_prefix}:config:config_id", config_no)
     if str(config_no).startswith("1"):
         source_name = "source_cu"
+        epics.caput(f"{experiment.eiger_prefix}:PhotonEnergy", 8050)
+        epics.caput(f"{experiment.eiger_prefix}:ThresholdEnergy", 4025)
     elif str(config_no).startswith("2"):
         source_name = "source_mo"
+        epics.caput(f"{experiment.eiger_prefix}:PhotonEnergy", 17400)
+        epics.caput(f"{experiment.eiger_prefix}:ThresholdEnergy", 8700)
     else:
         raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
-    epics.caput(f"{parrot_prefix}:config:source", source_name)
+    epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)
     return
 
 
@@ -195,10 +198,9 @@ def measure_at_config(
 
     config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
     moveto_config(
-        experiment.required_pvs,
+        experiment,
         config_path=Path.home() / "data/configurations",
         config_no=config_no,
-        parrot_prefix=experiment.parrot_prefix,
     )
 
     meta.logbook2parrot(entry)
