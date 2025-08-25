@@ -20,7 +20,7 @@ import os
 
 configuration = entry.additional_parameters.get('configuration', None)
 if configuration is not None:
-    moveto_config(experiment.required_pvs,
+    moveto_config(experiment,
                   config_no = configuration)
 
 def get_float_parameter(entry, keyword, default):

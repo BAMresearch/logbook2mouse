@@ -17,7 +17,7 @@ def get_float_parameter(entry, keyword, default):
 
 configuration = entry.additional_parameters.get('configuration', None)
 if configuration is not None:
-    moveto_config(experiment.required_pvs,
+    moveto_config(experiment,
                   config_no = configuration)
 
 alignment_batch = int(float(entry.additional_parameters.get('alignment_batch', entry.batchnum)))
