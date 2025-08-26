@@ -53,6 +53,7 @@ zheavymodel.parameters["sigma"].set(value = beam_sigma)
 print("initial zheavy center:", start_z)
 move_to_sampleposition(experiment, entry.sampleposition)
 
+y_center = entry.sampleposition["ysam"]
 roll_offset = 3 # mm - otherwise it won't work with GI4
 roll_center, new_z = align.roll_align(experiment, y_center, beam_sigma, roll_offset,
                                       centerofrotation = 37.3376,
