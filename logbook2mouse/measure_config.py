@@ -240,9 +240,10 @@ def standard_configurations(keyword: str = "standard"):
         configurations = [160, 161, 162, 163, 164, 165, 166, 123, 125, 127]
     elif keyword == "capillary":
         configurations = [110, 123, 125, 127]
-    elif keyword == "dual_source":
-        configurations = [160, 161, 162, 163, 164, 165, 166, 123, 125, 127,
-                          250, 251, 252, 253, 254, 255, 256, 223, 225, 226]
+    elif keyword == "mo_extension":
+        configurations = [250, 251, 252, 253, 254, 255, 256, 223]
+    elif keyword == "mo_standard":
+        configurations = [250, 251, 252, 253, 254, 255, 256, 223, 225, 226]
     else:
         raise ValueError(
             f"""Configuration set {keyword} is not defined. 
@@ -252,13 +253,13 @@ with e.g. 'key1=configuration' and 'value1=123' for configuration 123."""
     return configurations
 
 def default_repetitions(config_no: int = 110):
-    if config_no in [117, 127]:
+    if config_no in [117, 127, 226]:
         repetitions = 16
-    elif config_no in [115, 125]:
+    elif config_no in [115, 125, 225]:
         repetitions = 10
     elif config_no in [113, 123, 223]:
         repetitions = 5
-    elif config_no in [110, 225, 226]:
+    elif config_no in [110]:
         repetitions = 4
     else:
         repetitions = 1
