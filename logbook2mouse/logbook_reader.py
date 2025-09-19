@@ -182,7 +182,16 @@ class Logbook2MouseReader:
         else:
             # print(f"Reading project {projectID}")
             # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
-            project_file = self.project_base_path /f"{projectID[:4]}"/ f"{projectID}.xlsx"
+            # get the project file path with optional text bits between projectID and .xlsx
+            project_files = sorted((self.project_base_path / f"{projectID[:4]}").glob(f"{projectID}*.xlsx"))
+            # if multiple files match, take the first one
+            if len(project_files) == 0:
+                raise FileNotFoundError(f"Project file for {projectID} not found in {self.project_base_path / f'{projectID[:4]}'}.")
+            elif len(project_files) > 1:
+                print(f"Warning: Multiple project files found for {projectID}. Using the first one found.")
+            project_file = project_files[0]
+            # construct the full project file path
+            # project_file = self.project_base_path / f"{projectID[:4]}" / f"{projectID}.xlsx"
             if project_file.is_file():
                 project = ProjectReader(file_path=project_file).project_info
                 self._preloaded_projects[projectID] = project
