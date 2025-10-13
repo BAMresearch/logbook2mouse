@@ -1,17 +1,20 @@
 from pathlib import Path
 import pandas as pd
 import attrs
-from typing import Dict, Generator, List, Optional, Union
+from typing import Dict, Generator, List, Optional
 from .project_reader import ProjectReader, Sample, ProjectInfo, flexible_int_converter
 from .sample_environment_reader import SampleEnvironmentReader
-from .generate_tree import generate_tree
+# from .generate_tree import generate_tree
+
 
 # Convenience functions for date formatting
 def convert_date_to_string(date: pd.Timestamp) -> str:
     return date.strftime("%Y%m%d")
 
+
 def extract_year_from_date(date: pd.Timestamp) -> int:
     return date.year
+
 
 def optional_converter(converter):
     return lambda x: converter(x) if pd.notna(x) else None
@@ -58,15 +61,8 @@ class Logbook2MouseEntry:
     @classmethod
     def from_series(cls, series: pd.Series):
         # Use the series to create the entry by passing it directly to the constructor
-        predefined_fields = [
-            "converttoscript", "date", "Proposal", "sampleid", "User", "batchnum", 
-            "bgdate", "bgnumber", "dbgdate", "dbgnumber", "matrixfraction", 
-            "samplethickness", "sampos", 
-            "protocol", "procpipeline", "notes",
-        ]
 
         additional_parameters = dict(zip(series.filter(like="key").values, series.filter(like="val").values))
-        
         return cls(
             row_index=series.name,
             converttoscript=series["converttoscript"],
@@ -88,29 +84,38 @@ class Logbook2MouseEntry:
             additional_parameters=additional_parameters
         )
 
+
 @attrs.define
 class Logbook2MouseReader:
     file_path: Path = attrs.field(validator=[attrs.validators.instance_of(Path), lambda inst, attr, value: value.is_file() or ValueError(f"Logbook file: {value} does not exist.")])
     project_base_path: Path = attrs.field(validator=[attrs.validators.instance_of(Path), lambda inst, attr, value: value.is_dir() or ValueError(f"Base project directory: {value} cannot be accessed.")])
-    entries: List[Logbook2MouseEntry] = attrs.field(init=False, factory=list) # entries
-    projects: List[ProjectInfo] = attrs.field(init=False, factory=list) # their associated projects (most of which will be the same)
-    samples: List[Sample] = attrs.field(init=False, factory=list) # their associated samples
-    positions: List[Dict[str, float]] = attrs.field(init=False, factory=list) # their associated positions
-    _preloaded_projects: Dict[str, ProjectInfo] = attrs.field(init=False, factory=dict) # cache for preloaded projects. key is the project ID
-    _preloaded_positions: Dict[str, Dict[str, float]] = attrs.field(init=False, factory=dict) # cache for preloaded positions. key is the sampos
+    entries: List[Logbook2MouseEntry] = attrs.field(init=False, factory=list)  # entries
+    projects: List[ProjectInfo] = attrs.field(init=False, factory=list)  # their associated projects (most of which will be the same)
+    samples: List[Sample] = attrs.field(init=False, factory=list)  # their associated samples
+    positions: List[Dict[str, float]] = attrs.field(init=False, factory=list)  # their associated positions
+    load_all: bool = attrs.field(default=False)  # if True, load all entries, not just those with converttoscript == 1
+    _preloaded_projects: Dict[str, ProjectInfo] = attrs.field(init=False, factory=dict)  # cache for preloaded projects. key is the project ID
+    _preloaded_positions: Dict[str, Dict[str, float]] = attrs.field(init=False, factory=dict)  # cache for preloaded positions. key is the sampos
 
     def __attrs_post_init__(self):
-        self.entries = self.get_entries()
+        # do some basic profiling to find out where we are losing so much time
+        now = pd.Timestamp.now()
+        print(f"Reading logbook file {self.file_path}...")
+        if self.load_all:
+            self.entries = self.get_all_entries()
+        else:
+            self.entries = self.get_entries()
+        # print how many seconds it took to this point
         self.gather_projects()
+        # get the projects and samples for each entry
         self.projects = [self.get_project(entry.proposal) for entry in self.entries]
         self.samples = [self.get_sample(entry.proposal, entry.sampleid) for entry in self.entries]
         self.gather_positions()
         self.positions = [self.get_position(entry.sampos) for entry in self.entries]
         self.update_entries_with_project_and_sample()
         self.update_entries_with_positions()
-        # print(generate_tree(self.entries[0], omit_keys=["samples"]))
-        # print(self.entries[3])
-        
+        print(f"{(pd.Timestamp.now() - now).total_seconds():.2f} s total for logbook read and project/sample/position gathering.")
+
     def update_entries_with_project_and_sample(self):
         for entry in self.entries:
             entry.project = self.get_project(entry.proposal)
@@ -149,7 +154,7 @@ class Logbook2MouseReader:
                 usecols=lambda x: x not in ["Unnamed: 0", None],
                 parse_dates=["date", "bgdate", "dbgdate"],
                 dtype=dtype_spec,
-                na_values=None #["NA", "N/A", "-", " "]
+                na_values=None  # ["NA", "N/A", "-", " "]
             )
 
         except FileNotFoundError:
@@ -184,6 +189,7 @@ class Logbook2MouseReader:
             # resides in the base_path/[year]/[projectID].xlsx where the first 4 characters of the projectID is the year
             # get the project file path with optional text bits between projectID and .xlsx
             project_files = sorted((self.project_base_path / f"{projectID[:4]}").glob(f"{projectID}*.xlsx"))
+            print(f'searching for project file in {self.project_base_path / f"{projectID[:4]}"} with pattern {projectID}*.xlsx found files: {project_files}')
             # if multiple files match, take the first one
             if len(project_files) == 0:
                 raise FileNotFoundError(f"Project file for {projectID} not found in {self.project_base_path / f'{projectID[:4]}'}.")
@@ -207,7 +213,6 @@ class Logbook2MouseReader:
             _ = self.get_project(entry.proposal)
 
     def gather_positions(self) -> Dict[str, Dict[str, float]]:
-        print("Gathering positions from the logbook file...")
         self._preloaded_positions = SampleEnvironmentReader(file_path=self.file_path).read_sample_environment()
 
     def get_position(self, sampos) -> Dict[str, float]:
