@@ -3,10 +3,13 @@ import logging
 import numpy as np
 from pathlib import Path
 
-def work_directory(entry, basedir = Path("/home/ws8665-epics/data/")) -> Path:
+from logbook2mouse.logbook_reader import Logbook2MouseEntry
+from logbook2mouse.experiment import ExperimentVariables
+
+def work_directory(entry: Logbook2MouseEntry, experiment: ExperimentVariables) -> Path:
     timestamp = entry.date
     ymd = timestamp.strftime("%Y%m%d")
-    work_directory = basedir / str(timestamp.year) / ymd
+    work_directory = experiment.data_dir / str(timestamp.year) / ymd
     if os.path.exists(work_directory):
         logging.info(f"Measurement directory {ymd} already in use. Data will be added to this directory. ")
     else:
