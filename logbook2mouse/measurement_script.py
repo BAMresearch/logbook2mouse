@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger("logbook2mouse")
 
 from logbook2mouse.logbook_reader import Logbook2MouseEntry
+from logbook2mouse.file_management import work_directory
 from logbook2mouse.measure_config import standard_configurations, default_repetitions
 
 @attrs.define
@@ -23,6 +24,16 @@ class MeasurementScript:
         self.output_directory = self.output_script_path.parent
         assert self.output_directory.exists(), f"Output directory does not exist: {self.output_directory}"
         assert self.protocols_directory.exists(), f"Protocols directory does not exist: {self.protocols_directory}"
+
+    def identify_ymd_subdirs(self):
+        """
+        Identify what YMDs are written to based on the list of Logbook2MouseEntries.
+        """
+
+        ymd_directories_used = set()
+        for entry in self.entries:
+            ymd_directories_used = ymd_directories_used | {Path(str(entry.date.year)) / Path(entry.ymd)}
+        return ymd_directories_used
 
     def collate_configurations(self):
         """
@@ -142,6 +153,7 @@ class MeasurementScript:
         measurements_overall = self.calculate_number_of_measurements(entry_df)
         logger.info(f"{measurements_overall} measurements are planned overall.")
         script_lines += r"caput(f'{experiment.parrot_prefix}:exp:progress:measurements_overall'," + f"{measurements_overall}" + ")\n"
+
         for r, row in entry_df.iterrows():
             for e, entry in row.items():
                 if type(entry) == Logbook2MouseEntry:
@@ -152,6 +164,11 @@ class MeasurementScript:
 
         # Script shutdown
         script_lines += self.load_protocol_template(protocol_path=self.protocols_directory/'teardown.py')
+        # allow removal of directories used
+        ymd_directories_used = self.identify_ymd_subdirs()
+        for ymd_dir in ymd_directories_used:
+            script_lines += r"Path(f'{experiment.data_dir}" + f"/{ymd_dir}/.keep').unlink()" + "\n"
+
 
         return "".join(script_lines)
 

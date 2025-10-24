@@ -1,5 +1,6 @@
 import attrs
 from typing import List
+from pathlib import Path
 
 import epics
 
@@ -9,6 +10,7 @@ class ExperimentVariables:
     eiger_prefix: str = "detector_eiger"
     parrot_prefix: str = "pa0"
     image_processing_prefix: str = "image"
+    data_dir: Path = Path("~/data/")
 
     def __attrs_post_init__(self):
         epics.caput(f"{self.eiger_prefix}:Initialize", True)

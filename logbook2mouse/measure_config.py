@@ -213,7 +213,7 @@ def measure_at_config(
 
     epics.caput(f"{experiment.parrot_prefix}:exp:nrep", repetitions)
     scan_counter = 0
-    work_directory = filemanagement.work_directory(entry)
+    work_directory = filemanagement.work_directory(entry, experiment)
     ymd = entry.date.strftime("%Y%m%d")
     epics.caput(f"{experiment.parrot_prefix}:exp:logbook_date", ymd)
 
