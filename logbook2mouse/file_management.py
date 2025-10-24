@@ -14,6 +14,8 @@ def work_directory(entry: Logbook2MouseEntry, experiment: ExperimentVariables) -
         logging.info(f"Measurement directory {ymd} already in use. Data will be added to this directory. ")
     else:
         os.mkdir(work_directory)
+    # ensure .keep file is present
+    (work_directory / ".keep").touch(exist_ok = True)
     return work_directory
 
 def scan_counter_next(scan_counter, work_directory, entry):
