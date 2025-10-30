@@ -240,6 +240,8 @@ def standard_configurations(keyword: str = "standard"):
         configurations = [160, 161, 162, 163, 164, 165, 166, 123, 125, 127]
     elif keyword == "capillary":
         configurations = [110, 123, 125, 127]
+    elif keyword == "cu_waxs":
+        configurations = [160, 161, 162, 163, 164, 165, 166, 123]
     elif keyword == "mo_extension":
         configurations = [250, 251, 252, 253, 254, 255, 256, 223]
     elif keyword == "mo_standard":
