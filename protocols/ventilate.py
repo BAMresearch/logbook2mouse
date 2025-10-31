@@ -36,5 +36,7 @@ while pressure < 900:
     sleep(1)
     pressure = epics.caget("pressure_gauge:pressure")
     print("current pressure:", pressure)
-
+sleep(5)
+pressure = epics.caget("pressure_gauge:pressure")
+print("current pressure:", pressure)
 epics.caput("portenta:do7", 0)
