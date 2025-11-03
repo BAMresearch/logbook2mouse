@@ -259,7 +259,7 @@ def default_repetitions(config_no: int = 110):
         repetitions = 16
     elif config_no in [115, 125, 225]:
         repetitions = 10
-    elif config_no in [113, 123, 223]:
+    elif config_no in [113, 123, 223, 133]:
         repetitions = 5
     elif config_no in [110]:
         repetitions = 4
