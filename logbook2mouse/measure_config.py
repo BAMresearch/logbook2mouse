@@ -5,13 +5,14 @@ import h5py
 from math import isclose
 import logging
 from shutil import copy
-from typing import Dict, List, Optional
+from typing import Dict  # , List, Optional
 import caproto.threading.pyepics_compat as epics
 import logbook2mouse.file_management as filemanagement
 import logbook2mouse.detector as detector
 import logbook2mouse.metadata as meta
 from logbook2mouse.experiment import get_address
-from logbook2mouse.logbook_reader import Logbook2MouseEntry
+# from logbook2mouse.logbook_reader import Logbook2MouseEntry
+
 
 def move_motor(
     motorname, position: float, prefix: str = "mc0", parrot_prefix: str = "pa0"
@@ -37,6 +38,7 @@ def move_motor(
     epics.caput(parrot_pv, actual_value)
     return actual_value
 
+
 def move_to_sampleposition(experiment, sampleposition: Dict[str, float], blank: bool = False):
     """Move the motors according to the sample position entries."""
     for motor in sampleposition.keys():
@@ -55,12 +57,11 @@ def move_to_sampleposition(experiment, sampleposition: Dict[str, float], blank: 
                     move_motor(motorname, sampleposition[motor], prefix=addr.split(":")[0])
 
 
-
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
     current_position = epics.caget(f"{prefix}:{motorname}.VAL")  # use set position to ensure close match
-    if isclose(current_position, motorpos, rel_tol = 1e-8, abs_tol = 1e-5):
+    if isclose(current_position, motorpos, rel_tol=1e-8, abs_tol=1e-5):
         logging.info(f"Motor {motorname} already at stored position {motorpos}.")
     else:
         move_motor(motorname, motorpos, prefix=prefix, parrot_prefix="pa0")
@@ -74,7 +75,7 @@ def moveto_config(
     config_path: Path = Path.home() / "data/configurations",
     config_no: int = 110,
 ):
-    config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
+    config_no = int(float(config_no)) if isinstance(config_no, str) else int(config_no)
     # don't move at all if we are at this config according to parrot
     latest_config = int(epics.caget(f"{experiment.parrot_prefix}:config:config_id"))
     if latest_config == config_no:
@@ -126,17 +127,17 @@ def measure_profile(
 ):
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
     if mode == "blank":
-        move_to_sampleposition(experiment, sampleposition, blank = True)
+        move_to_sampleposition(experiment, sampleposition, blank=True)
         beamprofilepath = store_location / "beam_profile"
-        os.makedirs(beamprofilepath, exist_ok = True)
+        os.makedirs(beamprofilepath, exist_ok=True)
     elif mode == "sample":
         move_to_sampleposition(experiment, sampleposition)
         beamprofilepath = store_location / "beam_profile_through_sample"
-        os.makedirs(beamprofilepath, exist_ok = True)
+        os.makedirs(beamprofilepath, exist_ok=True)
     elif mode == "scan":
         # do not move
         beamprofilepath = store_location
-        os.makedirs(beamprofilepath, exist_ok = True)
+        os.makedirs(beamprofilepath, exist_ok=True)
     else:
         raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
 
@@ -160,6 +161,7 @@ def measure_profile(
         epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
 
         copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
+
 
 def measure_dataset(
         entry, experiment, store_location: Path, duration: float = 600.0,
@@ -187,6 +189,7 @@ def measure_dataset(
 
     epics.caput(f"{source_name}:shutter", 0, wait=True)
 
+
 def measure_at_config(
     config_no: int,
     entry,
@@ -196,7 +199,7 @@ def measure_at_config(
 ):
     """Measure with the default settings for each configuration."""
 
-    config_no = int(float(config_no)) if type(config_no) == str else int(config_no)
+    config_no = int(float(config_no)) if isinstance(config_no, str) else int(config_no)
     moveto_config(
         experiment,
         config_path=Path.home() / "data/configurations",
@@ -239,7 +242,7 @@ def standard_configurations(keyword: str = "standard"):
     if keyword == "standard":
         configurations = [160, 161, 162, 163, 164, 165, 166, 123, 125, 127]
     elif keyword == "capillary":
-        configurations = [110, 123, 125, 127]
+        configurations = [160, 161, 162, 163, 164, 165, 166, 133, 125]
     elif keyword == "cu_waxs":
         configurations = [160, 161, 162, 163, 164, 165, 166, 123]
     elif keyword == "mo_extension":
@@ -253,6 +256,7 @@ Specify the configurations to measure explicitly one by one,
 with e.g. 'key1=configuration' and 'value1=123' for configuration 123."""
         )
     return configurations
+
 
 def default_repetitions(config_no: int = 110):
     if config_no in [117, 127, 226]:
