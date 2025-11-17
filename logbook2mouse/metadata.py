@@ -16,9 +16,9 @@ def logbook2parrot(entry, parrot_prefix: str = "pa0"):
         mu_sample = entry.sample.calculate_overall_properties(energy_keV=8.050)[
             "overall_mu"
         ]
-    except NameError:
+    except Exception as e:
         mu_sample = 0  # default value
-        logger.warning(f"Could not calculate sample absorption coefficient. Setting mu_sample to {mu_sample} - fix proposal before processing!")
+        logger.warning(f"Could not calculate sample absorption coefficient. Setting mu_sample to {mu_sample} - fix proposal before processing! ({e})")
     epics.caput(f"{parrot_prefix}:sample:overall_mu", mu_sample)
     for item in ["batchnum", "user", "protocol", "procpipeline"]:
         value = getattr(entry, item)
