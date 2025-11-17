@@ -1,17 +1,24 @@
 import h5py
 import os
+import logging
 import numpy as np
 import caproto.threading.pyepics_compat as epics
 from caproto import CaprotoTimeoutError
 
 
 def logbook2parrot(entry, parrot_prefix: str = "pa0"):
+    logger = logging.getLogger("measurement")
+
     for item in ["proposal", "sampleid", "sampos", "matrixfraction", "samplethickness"]:
         value = getattr(entry, item)
         epics.caput(f"{parrot_prefix}:sample:{item}", value)
-    mu_sample = entry.sample.calculate_overall_properties(energy_keV=8.050)[
-        "overall_mu"
-    ]
+    try:
+        mu_sample = entry.sample.calculate_overall_properties(energy_keV=8.050)[
+            "overall_mu"
+        ]
+    except NameError:
+        mu_sample = 0  # default value
+        logger.warning(f"Could not calculate sample absorption coefficient. Setting mu_sample to {mu_sample} - fix proposal before processing!")
     epics.caput(f"{parrot_prefix}:sample:overall_mu", mu_sample)
     for item in ["batchnum", "user", "protocol", "procpipeline"]:
         value = getattr(entry, item)
