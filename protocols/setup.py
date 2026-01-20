@@ -58,3 +58,8 @@ experiment = ExperimentVariables(required_pvs, data_dir = Path("/home/ws8665-epi
 # ensure motor positions are at least checked at the beginning of a measurement
 caput("pa0:config:config_id", 999)
 caput("pa0:exp:progress:measurements_completed", 0)
+
+# clean up all .keep files in data_dir
+for path in experiment.data_dir.glob("*/*/.keep"):
+    logger.info(f"Removing .keep file in {path.parent.name}")
+    path.unlink()
