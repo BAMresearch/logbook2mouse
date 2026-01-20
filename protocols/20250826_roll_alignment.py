@@ -34,7 +34,7 @@ samplewidth = get_float_parameter(entry, 'samplewidth', samplelength)
 
 # define where to save scans
 ymd = entry.date.strftime("%Y%m%d")
-scan_dir = Path(work_directory(entry)) / f"{ymd}_{entry.batchnum}_{0}" / "scans"
+scan_dir = Path(work_directory(entry, experiment)) / f"{ymd}_{entry.batchnum}_{0}" / "scans"
 os.makedirs(scan_dir / "scan_0", exist_ok=True)
 
 move_to_sampleposition(experiment, entry.sampleposition)

@@ -3,6 +3,7 @@
 import logging
 logger = logging.getLogger("measurement")
 logger.setLevel(logging.INFO)
+from pathlib import Path
 from epics import caget, caput
 from pandas import Timestamp
 import logbook2mouse.detector as detector
@@ -53,8 +54,13 @@ for pv in required_pvs:
     if value is None:
         raise ConnectionError(f"PV '{pv}' is not reachable or has no value.")
 
-experiment = ExperimentVariables(required_pvs)
+experiment = ExperimentVariables(required_pvs, data_dir = Path("/home/ws8665-epics/data/"))
 
 # ensure motor positions are at least checked at the beginning of a measurement
 caput("pa0:config:config_id", 999)
 caput("pa0:exp:progress:measurements_completed", 0)
+
+# clean up all .keep files in data_dir
+for path in experiment.data_dir.glob("*/*/.keep"):
+    logger.info(f"Removing .keep file in {path.parent.name}")
+    path.unlink()

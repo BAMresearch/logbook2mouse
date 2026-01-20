@@ -29,7 +29,7 @@ if repetitions is not None:
     repetitions = int(float(repetitions))
 
 ymd = entry.date.strftime("%Y%m%d")
-wd = Path(work_directory(entry))
+wd = Path(work_directory(entry, experiment))
 aligned_data =  wd / f"{ymd}_{alignment_batch}_{1}"
 scan_dir = wd / f"{ymd}_{entry.batchnum}_{scan_counter_next(0, wd, entry)}"
 
