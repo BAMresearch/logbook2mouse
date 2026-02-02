@@ -65,8 +65,8 @@ def scan(
     motor_addr = get_address(experiment, motorname)
     prefix = motor_addr.rstrip(f":{motorname}")
     current_pos = epics.caget(motor_addr)
+    scan_point_format = scan_point_directory(store_location)
     store_location = create_scandir(store_location)
-    scan_point_format = scan_point_directory(work_dir)
 
     # measure direct beam as a reference
     move_to_sampleposition(experiment, sampleposition, blank=True)
