@@ -1,6 +1,7 @@
 from logbook2mouse.measure_config import move_motor, measure_profile, move_to_sampleposition
 from logbook2mouse.experiment import get_address
 from logbook2mouse.file_management import scan_counter_simple
+import logging
 import epics
 from csv import DictWriter
 from pathlib import Path
@@ -22,11 +23,35 @@ def create_scandir(work_dir):
 def scan(motorname, scan_start, scan_end, npoints,
          seconds,
          experiment, sampleposition, store_location):
+def scan_point_directory(work_dir):
+    """
+    Construct a subdirectory name for scan datapoints
+    from the work_dir the scan is located in.
+
+    work_dir typically ends in ymd_batch_repetition.
+
+    returns a string of type format ymd_batch_ if work_dir is of
+    the appropriate format, otherwise a dummy string.
+    """
+
+    subdir_parts = work_dir.name.split("_")
+    ymd = work_dir.parent.name
+    if len(subdir_parts) == 3 and subdir_parts[0] == ymd:
+        # this directory follows the regular pattern
+        scan_point_format = f"{ymd}_{subdir_parts[1]}_"
+    else:
+        logger = logging.getLogger("measurement")
+        logger.info(
+            f"Scan directory does not follow the pattern necessary for post-processing."
+        )
+        scan_point_format = f"{time.strftime('%Y%m%d', time.localtime())}_0_"
+    return scan_point_format
     """Scan and record transmission relative to the current position."""
     motor_addr = get_address(experiment, motorname)
     prefix = motor_addr.rstrip(f":{motorname}")
     current_pos = epics.caget(motor_addr)
     store_location = create_scandir(store_location)
+    scan_point_format = scan_point_directory(work_dir)
 
     # measure direct beam as a reference
     move_to_sampleposition(experiment, sampleposition, blank = True)
@@ -54,7 +79,7 @@ def scan(motorname, scan_start, scan_end, npoints,
         actual_pos = move_motor(motorname, position = point, prefix = prefix,
                                 parrot_prefix = experiment.parrot_prefix)
 
-        store_point = store_location / f"scan_{counter}"
+        store_point = store_location / f"{scan_point_format}{counter}"
         counter += 1
         measure_profile(sampleposition, store_point, experiment,
                         mode="scan",
