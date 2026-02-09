@@ -15,8 +15,8 @@ from logbook2mouse.experiment import ExperimentVariables
 
 # Required Process Variables (PVs) for this protocol. These will be validated before execution.
 required_pvs = [
-    'mc0:ysam',
-    'mc0:zsam',
+    'newport1:ysam',
+    'newport1:zsam',
     # 'mc0:zheavy',
     # 'mc0:yawgi',
     # 'mc0:rollgi',
@@ -41,7 +41,7 @@ required_pvs = [
     'ims:dual',
     'source_cu:shutter',  # uncomment once the source is repaired
     'source_mo:shutter',
-    'detector_eiger:DetectorState',  # detector control
+    'eiger:cam1:State_RBV',  # detector control
     'pressure_gauge:pressure',  # chamber pressure sensor
     'portenta:t0', 'portenta:t1',  # temperature sensors
     'pa0:sample:proposal',  # metadata server aka parrot
