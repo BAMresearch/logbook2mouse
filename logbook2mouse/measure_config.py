@@ -98,11 +98,11 @@ def moveto_config(
     if str(config_no).startswith("1"):
         source_name = "source_cu"
         detector.detector_wait_for_status("PhotonEnergy", experiment, value=8050, status="Photon Energy set")
-        detector.detector_wait_for_status("Threshold", experiment, value=4025, status="Threshold Energy set")
+        detector.detector_wait_for_status("ThresholdEnergy", experiment, value=4025, status="Threshold Energy set")
     elif str(config_no).startswith("2"):
         source_name = "source_mo"
         detector.detector_wait_for_status("PhotonEnergy", experiment, value=17400, status="Photon Energy set")
-        detector.detector_wait_for_status("Threshold", experiment, value=8700, status="Threshold Energy set")        
+        detector.detector_wait_for_status("ThresholdEnergy", experiment, value=8700, status="Threshold Energy set")        
     else:
         raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
     epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)

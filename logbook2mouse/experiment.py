@@ -3,7 +3,25 @@ from typing import List
 from pathlib import Path
 from time import sleep
 import epics
-from logbook2mouse.detector import detector_wait_for_pv
+
+def detector_wait_for_pv(pv, experiment, value=True, reply="Done"):
+    epics.caput(f"{experiment.eiger_prefix}:{pv}", value)
+    sleep(0.1)
+    restart_pv = epics.caget(f"{experiment.eiger_prefix}:{pv}", as_string=True)
+    while restart_pv != reply:
+        sleep(1)
+        restart_pv = epics.caget(f"{experiment.eiger_prefix}:{pv}", as_string=True)
+    return 1
+
+def detector_wait_for_status(pv, experiment, value=True, status="Done"):
+    epics.caput(f"{experiment.eiger_prefix}:{pv}", value)
+    sleep(0.1)
+    status_pv = epics.caget(f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True)
+    while status_pv != reply:
+        sleep(1)
+        status_pv = epics.caget(f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True)
+    return 1
+
 
 @attrs.define
 class ExperimentVariables:
@@ -27,7 +45,10 @@ class ExperimentVariables:
         epics.caput(f"{self.eiger_prefix}:SizeX", 1030)
         epics.caput(f"{self.eiger_prefix}:SizeY", 1065)
         epics.caput(f"{self.eiger_prefix}:TriggerMode", 0)  # internal serial
-        epics.caput(f"{self.eiger_prefix}:ImageMode", 2)  # continuous
+        epics.caput(f"{self.eiger_prefix}:ImageMode", 2)  # continuous\
+        epics.caput(f"{self.eiger_prefix}:AcquireTime", 10)
+        epics.caput(f"{self.eiger_prefix}:AcquirePeriod", 10)
+        epics.caput(f"{self.eiger_prefix}:FlatfieldApplied", False)
 
         
         
