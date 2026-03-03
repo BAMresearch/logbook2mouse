@@ -140,7 +140,7 @@ class ProjectInfo:
     description: str = attrs.field()
     samples: Dict[int, Sample] = attrs.field(factory=dict, validator=attrs.validators.deep_mapping(key_validator=attrs.validators.instance_of(int), value_validator=attrs.validators.instance_of(Sample)))
     release_location: Optional[str] = attrs.field(default=None)
-    no_co_authorship_reason: Optional[str] = attrs.field(default=None)
+    no_co_authorship_reason: str = attrs.field(default="")
     co_authorship: bool = attrs.field(default=False, converter=yesno_to_bool)
     public_release: bool = attrs.field(default=False, converter=yesno_to_bool)
 
@@ -165,7 +165,7 @@ class ProjectReader:
             public_release=project_sheet.iloc[8, 1],
             release_location=project_sheet.iloc[9, 1],
             co_authorship=project_sheet.iloc[10, 1],
-            no_co_authorship_reason=project_sheet.iloc[11, 1] if len(project_sheet) > 11 else None,
+            no_co_authorship_reason=project_sheet.iloc[11, 1] if len(project_sheet) > 11 else "",
         )
 
     def _read_samples(self) -> List[Sample]:
