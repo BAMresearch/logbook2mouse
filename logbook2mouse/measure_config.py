@@ -161,7 +161,15 @@ def measure_profile(
             duration=duration,
             store_location=beamprofilepath,
         )
+
+    status_message = epics.caget(
+        f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
     )
+    while status_message != "Ready":
+        time.sleep(0.2)
+        status_message = epics.caget(
+            f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+        )
     if mode in ["blank", "sample"]:
         epics.caput(f"{source_name}:shutter", 0, wait=True)
 

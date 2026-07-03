@@ -24,10 +24,14 @@ def detector_wait_for_pv(pv, experiment, value=True, reply="Done"):
 def detector_wait_for_status(pv, experiment, value=True, status="Done"):
     epics.caput(f"{experiment.eiger_prefix}:{pv}", value)
     sleep(0.1)
-    status_pv = epics.caget(f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True)
+    status_pv = epics.caget(
+        f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+    )
     while status_pv != status:
         sleep(1)
-        status_pv = epics.caget(f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True)
+        status_pv = epics.caget(
+            f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+        )
     return 1
 
 
@@ -48,13 +52,28 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     sleep(.1)
     is_triggered = epics.caget(f"{experiment.eiger_prefix}:Acquire_RBV", as_string=True)
     remaining_time = duration
-    while is_triggered != "Done":
+    status_message = epics.caget(
+        f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+    )
+
+    while status_message != "Processing files":
         # wait for trigger flag to go off
-        sleep(1)
-        remaining_time -= 1
-        is_triggered = epics.caget(f"{experiment.eiger_prefix}:Acquire_RBV", as_string=True)
-        print(f"\r{remaining_time} seconds remaining for the current exposure  ",
-              end='\r', flush=True)
+        sleep(0.1)
+        remaining_time -= 0.1
+        status_message = epics.caget(
+            f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+        )
+        print(
+            f"\r{remaining_time} seconds remaining for the current exposure  ",
+            end="\r",
+            flush=True,
+        )
+
+    while status_message != "Ready":
+        time.sleep(0.2)
+        status_message = epics.caget(
+            f"{experiment.eiger_prefix}:StatusMessage_RBV", as_string=True
+        )
 
     # get current snapshot of chamber pressure, temperature, ...
     # this is recorded at the end of the measurement time
