@@ -39,7 +39,9 @@ def move_motor(
     return actual_value
 
 
-def move_to_sampleposition(experiment, sampleposition: Dict[str, float], blank: bool = False):
+def move_to_sampleposition(
+    experiment, sampleposition: Dict[str, float], blank: bool = False
+):
     """Move the motors according to the sample position entries."""
     for motor in sampleposition.keys():
         addr = None  # some like xsam don't exist
@@ -51,16 +53,22 @@ def move_to_sampleposition(experiment, sampleposition: Dict[str, float], blank: 
         if addr is not None:  # xsam can't be moved
             if blank:
                 if "blank" in motor:
-                    move_motor(motorname, sampleposition[motor], prefix=addr.split(":")[0])
+                    move_motor(
+                        motorname, sampleposition[motor], prefix=addr.split(":")[0]
+                    )
             else:
                 if "blank" not in motor:
-                    move_motor(motorname, sampleposition[motor], prefix=addr.split(":")[0])
+                    move_motor(
+                        motorname, sampleposition[motor], prefix=addr.split(":")[0]
+                    )
 
 
 def move_motor_fromconfig(motorname, imcrawfile="im_craw.nxs", prefix="ims"):
     with h5py.File(imcrawfile) as h5:
         motorpos = float(h5[f"/saxs/Saxslab/{motorname}"][()])
-    current_position = epics.caget(f"{prefix}:{motorname}.VAL")  # use set position to ensure close match
+    current_position = epics.caget(
+        f"{prefix}:{motorname}.VAL"
+    )  # use set position to ensure close match
     if isclose(current_position, motorpos, rel_tol=1e-8, abs_tol=1e-5):
         logging.info(f"Motor {motorname} already at stored position {motorpos}.")
     else:
@@ -97,14 +105,24 @@ def moveto_config(
     epics.caput(f"{experiment.parrot_prefix}:config:config_id", config_no)
     if str(config_no).startswith("1"):
         source_name = "source_cu"
-        detector.detector_wait_for_status("PhotonEnergy", experiment, value=8050, status="Photon Energy set")
-        detector.detector_wait_for_status("ThresholdEnergy", experiment, value=4025, status="Threshold Energy set")
+        detector.detector_wait_for_status(
+            "PhotonEnergy", experiment, value=8050, status="Photon Energy set"
+        )
+        detector.detector_wait_for_status(
+            "ThresholdEnergy", experiment, value=4025, status="Threshold Energy set"
+        )
     elif str(config_no).startswith("2"):
         source_name = "source_mo"
-        detector.detector_wait_for_status("PhotonEnergy", experiment, value=17400, status="Photon Energy set")
-        detector.detector_wait_for_status("ThresholdEnergy", experiment, value=8700, status="Threshold Energy set")        
+        detector.detector_wait_for_status(
+            "PhotonEnergy", experiment, value=17400, status="Photon Energy set"
+        )
+        detector.detector_wait_for_status(
+            "ThresholdEnergy", experiment, value=8700, status="Threshold Energy set"
+        )
     else:
-        raise ValueError(f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}")
+        raise ValueError(
+            f"Configuration number must start with either 1 (Cu source) or 2 (Mo source), received {config_no}"
+        )
     epics.caput(f"{experiment.parrot_prefix}:config:source", source_name)
     return
 
@@ -146,7 +164,9 @@ def measure_profile(
             f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan', 'saved_scan'."
         )
 
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
+    source_name = epics.caget(
+        f"{experiment.parrot_prefix}:config:source", as_string=True
+    )
     if mode in ["blank", "sample"]:
         epics.caput(f"{source_name}:shutter", 1, wait=True)
     if mode == "scan":
@@ -179,13 +199,18 @@ def measure_profile(
             pv = "ImagePathPrimary"
         else:
             pv = "ImagePathSecondary"
-        epics.caput(f"{experiment.image_processing_prefix}:{pv}", str(fname).encode('utf-8'))
+        epics.caput(
+            f"{experiment.image_processing_prefix}:{pv}", str(fname).encode("utf-8")
+        )
 
         copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
 
 
 def measure_dataset(
-        entry, experiment, store_location: Path, duration: float = 600.0,
+    entry,
+    experiment,
+    store_location: Path,
+    duration: float = 600.0,
 ):
     frame_time = epics.caget(f"{experiment.eiger_prefix}:AcquireTime")
     epics.caput(f"{experiment.parrot_prefix}:exp:frame_time", frame_time)
@@ -198,12 +223,12 @@ def measure_dataset(
         )
     move_to_sampleposition(experiment, entry.sampleposition)
     move_motor("bsr", bsr, prefix="ims")
-    source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
+    source_name = epics.caget(
+        f"{experiment.parrot_prefix}:config:source", as_string=True
+    )
     epics.caput(f"{source_name}:shutter", 1, wait=True)
     epics.caput(f"{experiment.parrot_prefix}:exp:count_time", duration)
-    detector.measurement(
-        experiment, duration=duration, store_location=store_location
-    )
+    detector.measurement(experiment, duration=duration, store_location=store_location)
 
     for fname in store_location.glob("*data*.h5"):
         copy(fname, "/home/ws8665-epics/scan-using-epics-ioc/.current/current.h5")
@@ -255,8 +280,13 @@ def measure_at_config(
             duration=duration,
         )
         # update the counter for measurement progress
-        measurements_so_far = epics.caget(f'{experiment.parrot_prefix}:exp:progress:measurements_completed')
-        epics.caput(f'{experiment.parrot_prefix}:exp:progress:measurements_completed', measurements_so_far + 1)
+        measurements_so_far = epics.caget(
+            f"{experiment.parrot_prefix}:exp:progress:measurements_completed"
+        )
+        epics.caput(
+            f"{experiment.parrot_prefix}:exp:progress:measurements_completed",
+            measurements_so_far + 1,
+        )
 
 
 def standard_configurations(keyword: str = "standard"):
