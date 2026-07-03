@@ -135,19 +135,32 @@ def measure_profile(
         beamprofilepath = store_location / "beam_profile_through_sample"
         os.makedirs(beamprofilepath, exist_ok=True)
     elif mode == "scan":
+        beamprofilepath = store_location.parent
+        os.makedirs(beamprofilepath, exist_ok=True)
+    elif mode == "saved_scan":
         # do not move
         beamprofilepath = store_location
         os.makedirs(beamprofilepath, exist_ok=True)
     else:
-        raise ValueError(f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan'.")
+        raise ValueError(
+            f"Unknown profile measurement mode {mode}. Available options: 'blank', 'sample', 'scan', 'saved_scan'."
+        )
 
     source_name = epics.caget(f"{experiment.parrot_prefix}:config:source", as_string=True)
     if mode in ["blank", "sample"]:
         epics.caput(f"{source_name}:shutter", 1, wait=True)
-    detector.measurement(
-        experiment,
-        duration=duration,
-        store_location=beamprofilepath,
+    if mode == "scan":
+        detector.fileless_measurement(
+            experiment,
+            duration=duration,
+            store_location=beamprofilepath,
+        )
+    else:
+        detector.measurement(
+            experiment,
+            duration=duration,
+            store_location=beamprofilepath,
+        )
     )
     if mode in ["blank", "sample"]:
         epics.caput(f"{source_name}:shutter", 0, wait=True)
