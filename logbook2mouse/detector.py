@@ -41,6 +41,10 @@ def measurement(experiment, duration: float = 1.0, store_location: Path = Path("
     nimages = np.ceil(duration/frame_time )
     epics.caput(f"{experiment.eiger_prefix}:NumImages", nimages)
     #epics.caput(f"{experiment.eiger_prefix}:Configure", True)
+    if duration < frame_time:
+        epics.caput(f"{experiment.eiger_prefix}:AcquireTime", duration, wait=True)
+    else:
+        epics.caput(f"{experiment.eiger_prefix}:AcquireTime", frame_time, wait=True)
     det_status = epics.caget(f"{experiment.eiger_prefix}:State_RBV", as_string=True)
     while det_status != "idle":
         sleep(.1)
