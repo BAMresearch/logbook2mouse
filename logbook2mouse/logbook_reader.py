@@ -199,8 +199,12 @@ class Logbook2MouseReader:
             # construct the full project file path
             # project_file = self.project_base_path / f"{projectID[:4]}" / f"{projectID}.xlsx"
             if project_file.is_file():
-                project = ProjectReader(file_path=project_file).project_info
-                self._preloaded_projects[projectID] = project
+                try:
+                    project = ProjectReader(file_path=project_file).project_info
+                    self._preloaded_projects[projectID] = project
+                except:
+                    print(f"Failed to read '{project_file}'!")
+                    raise
             else:
                 raise FileNotFoundError(f"Project file {project_file} not found.")
         # if not with_samples: # this will probably also remove the samples from the original object. 
