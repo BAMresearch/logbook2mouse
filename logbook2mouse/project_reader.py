@@ -190,20 +190,24 @@ class ProjectReader:
             sample_id = flexible_int_converter(sample_df.iloc[0]["sampleId"])
             sample_name = sample_df.iloc[0]["sampleName"]
 
-            components = [
-                SampleComponent(
-                    component_id=row["componentId"],
-                    connection=row.get("componentConnection", None),
-                    connected_to=row.get("componentConnectedTo", None),
-                    name=row["componentName"],
-                    composition=row["composition"],
-                    density=row["density"],
-                    volume_fraction=row.get("volFrac", None),
-                    mass_fraction=row.get("massFrac", None),
-                )
-                for _, row in sample_df.iterrows()
-                if pd.notna(row["componentId"])
-            ]
+            try:
+                components = [
+                    SampleComponent(
+                        component_id=row["componentId"],
+                        connection=row.get("componentConnection", None),
+                        connected_to=row.get("componentConnectedTo", None),
+                        name=row["componentName"],
+                        composition=row["composition"],
+                        density=row["density"],
+                        volume_fraction=row.get("volFrac", None),
+                        mass_fraction=row.get("massFrac", None),
+                    )
+                    for _, row in sample_df.iterrows()
+                    if pd.notna(row["componentId"])
+                ]
+            except:
+                print(f"Failed to parse {row["componentId"]=}, {sample_id=}, {sample_name=}")
+                raise
 
             samples.update({sample_id: Sample(sample_id=sample_id, sample_name=sample_name, components=components)})
 
